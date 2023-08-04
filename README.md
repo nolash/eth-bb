@@ -57,18 +57,25 @@ eth-get <hash> -r -o contract
 
 ## Adding posts
 
+Add a post with the `add(context,content)` smart contract method.
+
+The context is like a subdomain. `bytes32(0)` means "global context."
+
+
+### Using the tool
+
 This package defines the tool `eth-bb`. 
 
 After the contract has been published, posts can be added using the `eth-bb` tool. Here are some examples:
 
 ```
-# publish plain text content hash
+# publish plain text content hash (global context)
 eth-bb -y <keyfile_path> -e <contract_address> --fee-limit 100000 <256_bit_content_hash>
 
-# publish plain text from file
+# publish plain text from file (global context)
 eth-bb -y <keyfile_path> -e <contract_address> --fee-limit 100000 --file <file_to_publish>
 
-# publish plain text from file, with a context (like a subdomain)
+# publish plain text from file, with a context
 eth-bb -y <keyfile_path> -e <contract_address> --context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --fee-limit 100000 --file <file_to_publish>
 
 # publish rss content from hash 
@@ -79,7 +86,7 @@ eth-bb -y <keyfile_path> -e <contract_address> --context 2c26b46b68ffc68ff99b453
 ```
 
 
-### Calculating the context
+#### Calculating the context
 
 If the `--context` parameter is given by itself, the entry will be recorded in the smart contract under that 256-bit context.
 
@@ -88,3 +95,15 @@ If no `--context` parameter is given, the entry will be recorded in the smart co
 If `--mime` is specified, then the UTF-8 byte value of the string passed to the argument will be appended to the 256 bit context (the corresponding byte value of the hex), separated by "." (0x2E). The context used for the smart contract submission will be the sha256 hash of that data.
 
 For example; with `--context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae` and `--mime foo/bar`, the resulting context will be `3087da3a4531097111e85c59fe75593c92b92b4cf55bc3071224ed6c14cb48b9`.
+
+
+## Retrieving posts
+
+Number of posts for a specific contexts is retrieved with the smart contract method `entryCount(signer,context)`.
+
+A single post in a specific contexts is retrieved with the smart contract method `entry(signer,context,idx)`, where `idx` is the zero-indexed index of the post (i.e. `entryCount(...)-1`).
+
+
+### Using the tool
+
+TBC
