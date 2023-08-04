@@ -1,1 +1,1 @@
-from .bb import BB
+from .bb import *

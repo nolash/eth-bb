@@ -59,7 +59,7 @@ class BB(TxFactory):
         return BB.bytecode()
 
 
-    def add(self, contract_address, sender_address, content, ctx=ZERO_CONTENT, tx_format=TxFormat.JSONRPC):
+    def add(self, contract_address, sender_address, content, ctx=ZERO_CONTENT, tx_format=TxFormat.JSONRPC, id_generator=None):
         enc = ABIContractEncoder()
         enc.method('add')
         enc.typ(ABIContractType.BYTES32)
@@ -69,7 +69,7 @@ class BB(TxFactory):
         data = enc.get()
         tx = self.template(sender_address, contract_address, use_nonce=True)
         tx = self.set_code(tx, data)
-        tx = self.finalize(tx, tx_format)
+        tx = self.finalize(tx, tx_format, id_generator=id_generator)
         return tx
 
 
@@ -111,3 +111,14 @@ class BB(TxFactory):
         o['params'].append('latest')
         o = j.finalize(o)
         return o
+
+
+
+def bytecode(**kwargs):
+    return BB.bytecode(version=kwargs.get('version'))
+
+
+def args(v):
+    if v == 'default' or v == 'bytecode':
+        return ([], ['version'],)
+    raise ValueError('unknown command: ' + v)
