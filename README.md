@@ -77,3 +77,14 @@ eth-bb -y <keyfile_path> -e <contract_address> --mime application/rss+xml --fee-
 # publish rss content from hash in context
 eth-bb -y <keyfile_path> -e <contract_address> --context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
 ```
+
+
+### Calculating the context
+
+If the `--context` parameter is given by itself, the entry will be recorded in the smart contract under that 256-bit context.
+
+If no `--context` parameter is given, the entry will be recorded in the smart conrtact under the context `bytes32(0x0)`
+
+If `--mime` is specified, then the UTF-8 byte value of the string passed to the argument will be appended to the 256 bit context (the corresponding byte value of the hex), separated by "." (0x2E). The context used for the smart contract submission will be the sha256 hash of that data.
+
+For example; with `--context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae` and `--mime foo/bar`, the resulting context will be `3087da3a4531097111e85c59fe75593c92b92b4cf55bc3071224ed6c14cb48b9`.
