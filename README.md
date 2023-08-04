@@ -68,6 +68,12 @@ eth-bb -y <keyfile_path> -e <contract_address> --fee-limit 100000 <256_bit_conte
 # publish plain text from file
 eth-bb -y <keyfile_path> -e <contract_address> --fee-limit 100000 --file <file_to_publish>
 
+# publish plain text from file, with a context (like a subdomain)
+eth-bb -y <keyfile_path> -e <contract_address> --context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --fee-limit 100000 --file <file_to_publish>
+
 # publish rss content from hash 
 eth-bb -y <keyfile_path> -e <contract_address> --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
+
+# publish rss content from hash in context
+eth-bb -y <keyfile_path> -e <contract_address> --context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
 ```
