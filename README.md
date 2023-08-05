@@ -64,25 +64,25 @@ The context is like a subdomain. `bytes32(0)` means "global context."
 
 ### Using the tool
 
-This package defines the tool `eth-bb`. 
+This package defines the tool `eth-bb-put`. 
 
 After the contract has been published, posts can be added using the `eth-bb` tool. Here are some examples:
 
 ```
 # publish plain text content hash (global context)
-eth-bb -y <keyfile_path> -e <contract_address> --fee-limit 100000 <256_bit_content_hash>
+eth-bb-put -y <keyfile_path> -e <contract_address> --fee-limit 100000 <256_bit_content_hash>
 
 # publish plain text from file (global context)
-eth-bb -y <keyfile_path> -e <contract_address> --fee-limit 100000 --file <file_to_publish>
+eth-bb-put -y <keyfile_path> -e <contract_address> --fee-limit 100000 --file <file_to_publish>
 
 # publish plain text from file, with a context
-eth-bb -y <keyfile_path> -e <contract_address> --context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --fee-limit 100000 --file <file_to_publish>
+eth-bb-put -y <keyfile_path> -e <contract_address> --context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --fee-limit 100000 --file <file_to_publish>
 
 # publish rss content from hash 
-eth-bb -y <keyfile_path> -e <contract_address> --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
+eth-bb-put -y <keyfile_path> -e <contract_address> --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
 
 # publish rss content from hash in context
-eth-bb -y <keyfile_path> -e <contract_address> --context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
+eth-bb-put -y <keyfile_path> -e <contract_address> --context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
 ```
 
 
@@ -106,4 +106,20 @@ A single post in a specific contexts is retrieved with the smart contract method
 
 ### Using the tool
 
-TBC
+This package defines the tool `eth-bb-get`
+
+It returns ranges of updates queried by author and context.
+
+
+```
+# get all updates from author Eb3907eCad74a0013c259D5874AE7f22DcBcC95C for the global context
+eth-bb-get -e <contract_address> --fee-limit 100000 Eb3907eCad74a0013c259D5874AE7f22DcBcC95C
+
+# get next 3 updates after skipping first 10 from author Eb3907eCad74a0013c259D5874AE7f22DcBcC95C for the global context
+eth-bb-get -e <contract_address> --fee-limit 100000 --offset 10 --limit 3 Eb3907eCad74a0013c259D5874AE7f22DcBcC95C
+
+# get last three updates from same author in reverse order
+eth-bb-get -e <contract_address> --fee-limit 100000 --reverse --limit 3 Eb3907eCad74a0013c259D5874AE7f22DcBcC95C
+```
+
+By default a list of content hashes is returned, in sequence, one on each line.
