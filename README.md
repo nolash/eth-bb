@@ -123,3 +123,14 @@ eth-bb-get -e <contract_address> --fee-limit 100000 --reverse --limit 3 Eb3907eC
 ```
 
 By default a list of content hashes is returned, in sequence, one on each line.
+
+
+#### Resolving content hashes
+
+Using the `--resolve <spec>` flag, each content hash can be resolved into actual content before being output.
+
+The builtin module `eth_bb.resolve` can automagically resolve resolver specs.
+
+Currently `eth_bb.resolve` only implements the `http` resolver. When an HTTP-spec is detected, the url `<spec>/<hash>` will be constructed and used for a HTTP request to retrieve the data. For example, if the url is `http://localhost:8080` and the hash to be retrieved is `2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae`, the request will be made to `http://localhost:8080/2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae`.
+
+The module to handle the resolver can be overridden using the `--resolver-module` flag. This must be a python module path, and must implement the method `resolve(spec, identifier)` which must return a _string_ with the resolved content. If the content could not be resolved, an empty string must be returned. It is advisable to _log an error_ on failing to resolve, describing the problem.
