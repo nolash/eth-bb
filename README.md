@@ -135,6 +135,8 @@ Currently `eth_bb.resolve` only implements the `http` resolver. When an HTTP-spe
 
 The module to handle the resolver can be overridden using the `--resolver-module` flag. This must be a python module path, and must implement the method `resolve(spec, identifier)` which must return a _string_ with the resolved content. If the content could not be resolved, an empty string must be returned. It is advisable to _log an error_ on failing to resolve, describing the problem.
 
+The [wala project](https://git.defalsify.org/wala/) provides functionality to easily PUT and GET using (sha256) content addressing.
+
 
 #### Rendering
 
