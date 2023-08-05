@@ -20,6 +20,7 @@ import hashlib
 # external imports
 from hexathon import (
         add_0x,
+        strip_0x,
         )
 import chainlib.eth.cli
 from chainlib.eth.cli.log import process_log
@@ -40,12 +41,33 @@ from chainlib.eth.cli.config import (
 from eth_bb import BB
 from eth_bb.cli.config import process_config_local
 from eth_bb.cli.settings import process_settings_local
-
+from eth_bb.render import RenderMode
 
 logg = logging.getLogger()
 
+
+def verify(config, v):
+    if config.get('_MIME') == None:
+        logg.debug('skipping verify since mime is not specified')
+        return
+    from eth_bb.render import mode_for
+    from eth_bb.error import VerifyError
+    mime = config.get('_MIME')
+    mode = mode_for(mime)
+    m = None
+    if mode == None:
+        raise VerifyError('verifier not found for content type "{}"'.format(mime))
+    if mode == RenderMode.RSS:
+        import importlib
+        m = importlib.import_module('eth_bb.render.rss')
+        m.verify_file(v)
+
+
 def process_config_local_bb(config, arg, args, flags):
+    config.add(args.verify, '_VERIFY', False)
     if args.file != None:
+        if args.verify:
+            verify(config, args.file)
         f = open(args.file, 'rb')
         h = hashlib.sha256()
         while True:
@@ -76,6 +98,7 @@ argparser.add_argument('--context', type=str, default=ZERO_CONTENT, help='name o
 argparser.add_argument('--mime', type=str, help='post mime type')
 argparser.add_argument('--mode', type=str, help='human-friendly mime definition')
 argparser.add_argument('--file', type=str, help='create digest from file')
+argparser.add_argument('--verify', action='store_true', help='verify contents against mime type')
 argparser.add_argument('digest', type=str, nargs='*', help='content digest to post')
 args = argparser.parse_args()
 

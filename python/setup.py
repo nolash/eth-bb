@@ -23,4 +23,7 @@ f.close()
 setup(
         install_requires=requirements,
         tests_require=test_requirements,
+        extras_require={
+            'rss': 'feedparser~=6.0',
+            }
     )
