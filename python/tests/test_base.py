@@ -45,19 +45,19 @@ class Test(EthTesterCase):
     def test_hash(self):
         nonce_oracle = RPCNonceOracle(self.accounts[0], self.rpc)
         c = BB(self.chain_spec, signer=self.signer, nonce_oracle=nonce_oracle)
-        (tx_hash, o) = c.add(self.address, self.accounts[0], hash_of_foo, hash_of_bar)
+        (tx_hash, o) = c.add(self.address, self.accounts[0], hash_of_bar, ctx=hash_of_foo)
         self.conn.do(o)
         o = receipt(tx_hash)
         r = self.conn.do(o)
         self.assertEqual(r['status'], 1)
 
-        (tx_hash, o) = c.add(self.address, self.accounts[0], hash_of_foo, hash_of_baz)
+        (tx_hash, o) = c.add(self.address, self.accounts[0], hash_of_baz, ctx=hash_of_foo)
         self.conn.do(o)
         o = receipt(tx_hash)
         r = self.conn.do(o)
         self.assertEqual(r['status'], 1)
 
-        (tx_hash, o) = c.add(self.address, self.accounts[0], hash_of_bar, hash_of_foo)
+        (tx_hash, o) = c.add(self.address, self.accounts[0], hash_of_foo, ctx=hash_of_bar)
         self.conn.do(o)
         o = receipt(tx_hash)
         r = self.conn.do(o)
@@ -71,7 +71,7 @@ class Test(EthTesterCase):
         r = self.conn.do(o)
         self.assertEqual(int(r, 16), 1)
 
-        o = c.entry(self.address, self.accounts[0], hash_of_foo, 1, sender_address=self.accounts[0])
+        o = c.entry(self.address, self.accounts[0], 1, ctx=hash_of_foo, sender_address=self.accounts[0])
         r = self.conn.do(o)
         self.assertTrue(same_hex(r, hash_of_baz))
 

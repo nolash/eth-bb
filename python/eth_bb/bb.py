@@ -64,8 +64,8 @@ class BB(TxFactory):
         enc.method('add')
         enc.typ(ABIContractType.BYTES32)
         enc.typ(ABIContractType.BYTES32)
-        enc.bytes32(content)
         enc.bytes32(ctx)
+        enc.bytes32(content)
         data = enc.get()
         tx = self.template(sender_address, contract_address, use_nonce=True)
         tx = self.set_code(tx, data)
@@ -73,7 +73,7 @@ class BB(TxFactory):
         return tx
 
 
-    def entry(self, contract_address, author_address, context, idx, sender_address=ZERO_ADDRESS, id_generator=None):
+    def entry(self, contract_address, author_address, idx, ctx=ZERO_CONTENT, sender_address=ZERO_ADDRESS, id_generator=None):
         j = JSONRPCRequest(id_generator)
         o = j.template()
         o['method'] = 'eth_call'
@@ -83,7 +83,7 @@ class BB(TxFactory):
         enc.typ(ABIContractType.BYTES32)
         enc.typ(ABIContractType.UINT256)
         enc.address(author_address)
-        enc.bytes32(context)
+        enc.bytes32(ctx)
         enc.uint256(idx)
         data = add_0x(enc.get())
         tx = self.template(sender_address, contract_address)
@@ -111,7 +111,6 @@ class BB(TxFactory):
         o['params'].append('latest')
         o = j.finalize(o)
         return o
-
 
 
 def bytecode(**kwargs):

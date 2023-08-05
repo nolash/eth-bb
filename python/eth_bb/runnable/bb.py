@@ -20,7 +20,6 @@ import hashlib
 # external imports
 from hexathon import (
         add_0x,
-        strip_0x,
         )
 import chainlib.eth.cli
 from chainlib.eth.cli.log import process_log
@@ -39,13 +38,13 @@ from chainlib.eth.cli.config import (
 
 # local imports
 from eth_bb import BB
+from eth_bb.cli.config import process_config_local
+from eth_bb.cli.settings import process_settings_local
+
 
 logg = logging.getLogger()
 
-
-def process_config_local(config, arg, args, flags):
-    config.add(args.mime, '_MIME', False)
-    config.add(strip_0x(args.context), '_CONTEXT', False)
+def process_config_local_bb(config, arg, args, flags):
     if args.file != None:
         f = open(args.file, 'rb')
         h = hashlib.sha256()
@@ -55,26 +54,15 @@ def process_config_local(config, arg, args, flags):
                 break
             h.update(data)
         config.add(h.digest().hex(), '_CONTENT', False)
-    else:
+    elif args.digest != None:
         d = strip_0x(args.digest[0])
         assert len(d) == 64
         config.add(args.digest[0], '_CONTENT', False)
     return config
 
 
-def process_settings_local(settings, config):
-    if config.get('_MIME') != None:
-        h = hashlib.sha256()
-        b = bytes.fromhex(config.get('_CONTEXT'))
-        h.update(b)
-        s = '.' + config.get('_MIME')
-        b = s.encode('utf-8')
-        h.update(b)
-        settings.set('CONTEXT', h.digest().hex())
-    else:
-        settings.set('CONTEXT', config.get('_CONTEXT'))
+def process_settings_local_bb(settings, config):
     settings.set('CONTENT', config.get('_CONTENT'))
-    logg.debug('using context {}'.format(settings.get('CONTEXT')))
     return settings
 
 
@@ -82,11 +70,11 @@ arg_flags = ArgFlag()
 arg = Arg(arg_flags)
 flags = arg_flags.STD_WRITE | arg_flags.EXEC | arg_flags.WALLET
 
-
 argparser = chainlib.eth.cli.ArgumentParser()
 argparser = process_args(argparser, arg, flags)
 argparser.add_argument('--context', type=str, default=ZERO_CONTENT, help='name of context')
 argparser.add_argument('--mime', type=str, help='post mime type')
+argparser.add_argument('--mode', type=str, help='human-friendly mime definition')
 argparser.add_argument('--file', type=str, help='create digest from file')
 argparser.add_argument('digest', type=str, nargs='*', help='content digest to post')
 args = argparser.parse_args()
@@ -94,13 +82,15 @@ args = argparser.parse_args()
 logg = process_log(args, logg)
 
 config = Config()
-config = process_config(config, arg, args, flags) #, positional_name='value')
+config = process_config(config, arg, args, flags)
 config = process_config_local(config, arg, args, flags)
+config = process_config_local_bb(config, arg, args, flags)
 logg.debug('config loaded:\n{}'.format(config))
 
 settings = ChainSettings()
 settings = process_settings(settings, config)
 settings = process_settings_local(settings, config)
+settings = process_settings_local_bb(settings, config)
 logg.debug('settings loaded:\n{}'.format(settings))
 
 
