@@ -17,4 +17,5 @@ def process_settings_local(settings, config):
     else:
         settings.set('CONTEXT', config.get('_CONTEXT'))
     logg.debug('using context {}'.format(settings.get('CONTEXT')))
+    settings.set('VERIFY', config.true('_VERIFY'))
     return settings

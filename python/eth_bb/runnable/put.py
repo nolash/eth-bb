@@ -64,7 +64,6 @@ def verify(config, v):
 
 
 def process_config_local_bb(config, arg, args, flags):
-    config.add(args.verify, '_VERIFY', False)
     if args.file != None:
         if args.verify:
             verify(config, args.file)

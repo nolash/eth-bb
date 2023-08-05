@@ -41,6 +41,7 @@ from chainlib.eth.cli.config import (
 from eth_bb import BB
 from eth_bb.cli.config import process_config_local
 from eth_bb.cli.settings import process_settings_local
+from eth_bb.render import RenderMode
 
 logg = logging.getLogger()
 
@@ -59,13 +60,15 @@ def process_config_local_get(config, arg, args, flags):
     config.add(author, '_AUTHOR', False)
     config.add(args.resolve, '_RESOLVE', False)
     config.add(args.resolve_module, '_RESOLVE_MODULE', False)
+    config.add(args.render, '_RENDER', False)
+    config.add(args.render_module, '_RENDER_MODULE', False)
     return config
 
 
 def process_settings_local_get(settings, config):
     settings.set('AUTHOR', config.get('_AUTHOR'))
-   
     settings.set('RESOLVER', None)
+
     resolve = config.get('_RESOLVE')
     if resolve != None:
         import eth_bb.resolve
@@ -77,14 +80,40 @@ def process_settings_local_get(settings, config):
         else:
             m = eth_bb.resolve.module_for(resolve)
         settings.set('RESOLVER', m)
+
+    if config.true('_RENDER'):
+        m = None
+        if config.get('_RENDER_MODULE'):
+            import importlib
+            m = importlib.import_module(config.get('_RENDER_MODULE'))
+        else:
+            from eth_bb.render import mode_for
+            mime = config.get('_MIME')
+            mode = mode_for(mime)
+            if mode == None:
+                raise VerifyError('verifier not found for content type "{}"'.format(mime))
+            if mode == RenderMode.RSS:
+                import importlib
+                m = importlib.import_module('eth_bb.render.rss')
+        settings.set('RENDERER', m.Builder(settings.get('VERIFY')))
     return settings
 
 
-def render(settings, v, w=sys.stdout):
+def resolve(settings, v, w=sys.stdout):
     if settings.get('RESOLVER') == None:
-        w.write(v)
+        w.write(v + "\n")
+        return
     r = settings.get('RESOLVER').resolve(settings.get('RESOLVER_SPEC'), v)
     w.write(r)
+
+def render(settings, v, w=sys.stdout):
+    ww = w
+    renderer = settings.get('RENDERER')
+    if renderer != None:
+        ww = renderer
+    resolve(settings, v, w=ww)
+    if renderer != None:
+        renderer.flush(w=w)
 
 
 arg_flags = ArgFlag()
@@ -101,6 +130,9 @@ argparser.add_argument('--limit', type=int, default=0, help='end index')
 argparser.add_argument('--reverse', action='store_true', help='return values in reverse sequential order')
 argparser.add_argument('--resolve', type=str, help='spec to resolve the content hashes to content')
 argparser.add_argument('--resolve-module', dest='resolve_module', type=str, help='module to use for resolving. overrides builtin modules')
+argparser.add_argument('--render', action='store_true', help='render the result according to the given mime type')
+argparser.add_argument('--render-module', dest='render_module', type=str, help='module to use for rendering')
+argparser.add_argument('--verify', action='store_true', help='verify contents against mime type')
 argparser.add_argument('author', type=str, nargs='*', help='return values in reverse sequential order')
 args = argparser.parse_args()
 

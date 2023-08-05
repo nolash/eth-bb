@@ -18,4 +18,5 @@ def process_config_local(config, arg, args, flags):
     else:
         config.add(args.mime, '_MIME', False)
     config.add(strip_0x(args.context), '_CONTEXT', False)
+    config.add(args.verify, '_VERIFY', False)
     return config 
