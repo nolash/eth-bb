@@ -142,5 +142,5 @@ Using the `--render` flag, extra processing can be applied on resolved content b
 
 Default behavior is to _suppress_ any content that does not match the rendering expectations. This behavior can be changed by specifying the `--verify` flag, which will terminate when non-conforming data is encountered.
 
-With the `--render-module` flag, the module use to generate the rendering can be defined directly on the command line. The module _must_ contain a class called `Builder` which satisfies the pseudo-interface defined in `eth_bb.render.Renderer`. This repository contains a module `examplerender` that demonstrates a simple render override.
+With the `--render-module` flag, the module use to generate the rendering can be defined directly on the command line. The module _must_ contain a class called `Builder` which satisfies the pseudo-interface defined in `eth_bb.render.Renderer`. This repository contains a module `example.render` that demonstrates a simple render override.
 

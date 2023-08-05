@@ -104,7 +104,7 @@ def resolve(settings, v, w=sys.stdout):
         w.write(v + "\n")
         return
     r = settings.get('RESOLVER').resolve(settings.get('RESOLVER_SPEC'), v)
-    w.write(r)
+    w.write(r + "\n")
 
 def render(settings, v, w=sys.stdout):
     ww = w
