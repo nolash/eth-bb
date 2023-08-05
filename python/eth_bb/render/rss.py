@@ -8,6 +8,7 @@ import os
 
 # local imports
 from eth_bb.error import VerifyError
+from eth_bb.render import Renderer
 
 logg = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ def verify_file(v):
     return verify(v)
 
 
-class Builder:
+class Builder(Renderer):
 
     def __init__(self, enable_verify):
         self.channel = 'eth-bb'

@@ -134,3 +134,13 @@ The builtin module `eth_bb.resolve` can automagically resolve resolver specs.
 Currently `eth_bb.resolve` only implements the `http` resolver. When an HTTP-spec is detected, the url `<spec>/<hash>` will be constructed and used for a HTTP request to retrieve the data. For example, if the url is `http://localhost:8080` and the hash to be retrieved is `2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae`, the request will be made to `http://localhost:8080/2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae`.
 
 The module to handle the resolver can be overridden using the `--resolver-module` flag. This must be a python module path, and must implement the method `resolve(spec, identifier)` which must return a _string_ with the resolved content. If the content could not be resolved, an empty string must be returned. It is advisable to _log an error_ on failing to resolve, describing the problem.
+
+
+#### Rendering
+
+Using the `--render` flag, extra processing can be applied on resolved content before generating output.
+
+Default behavior is to _suppress_ any content that does not match the rendering expectations. This behavior can be changed by specifying the `--verify` flag, which will terminate when non-conforming data is encountered.
+
+With the `--render-module` flag, the module use to generate the rendering can be defined directly on the command line. The module _must_ contain a class called `Builder` which satisfies the pseudo-interface defined in `eth_bb.render.Renderer`. This repository contains a module `examplerender` that demonstrates a simple render override.
+
