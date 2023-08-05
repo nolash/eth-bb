@@ -1,7 +1,4 @@
-#!python3
-
-"""Token transfer script
-
+"""
 .. moduleauthor:: Louis Holbrook <dev@holbrook.no>
 .. pgp:: 0826EDA1702D1E87C6E2875121D2E7BB88C2A746 
 
@@ -16,6 +13,7 @@ import json
 import argparse
 import logging
 import hashlib
+import sys
 
 # external imports
 from hexathon import (
@@ -59,12 +57,34 @@ def process_config_local_get(config, arg, args, flags):
         author = strip_0x(author)
 
     config.add(author, '_AUTHOR', False)
+    config.add(args.resolve, '_RESOLVE', False)
+    config.add(args.resolve_module, '_RESOLVE_MODULE', False)
     return config
 
 
 def process_settings_local_get(settings, config):
     settings.set('AUTHOR', config.get('_AUTHOR'))
+   
+    settings.set('RESOLVER', None)
+    resolve = config.get('_RESOLVE')
+    if resolve != None:
+        import eth_bb.resolve
+        settings.set('RESOLVER_SPEC', resolve)
+        m = None
+        if config.get('_RESOLVE_MODULE') != None:
+            import importlib
+            m = importlib.import_module(config.get('_RESOLVE_MODULE'))
+        else:
+            m = eth_bb.resolve.module_for(resolve)
+        settings.set('RESOLVER', m)
     return settings
+
+
+def render(settings, v, w=sys.stdout):
+    if settings.get('RESOLVER') == None:
+        w.write(v)
+    r = settings.get('RESOLVER').resolve(settings.get('RESOLVER_SPEC'), v)
+    w.write(r)
 
 
 arg_flags = ArgFlag()
@@ -79,6 +99,8 @@ argparser.add_argument('--mode', type=str, help='human-friendly mime definition'
 argparser.add_argument('--offset', type=int, default=0, help='start index')
 argparser.add_argument('--limit', type=int, default=0, help='end index')
 argparser.add_argument('--reverse', action='store_true', help='return values in reverse sequential order')
+argparser.add_argument('--resolve', type=str, help='spec to resolve the content hashes to content')
+argparser.add_argument('--resolve-module', dest='resolve_module', type=str, help='module to use for resolving. overrides builtin modules')
 argparser.add_argument('author', type=str, nargs='*', help='return values in reverse sequential order')
 args = argparser.parse_args()
 
@@ -137,8 +159,8 @@ def main():
             r = conn.do(o)
         except JSONRPCException:
             break
-        print(strip_0x(r))
-
+        
+        render(settings, strip_0x(r))
 
 
 if __name__ == '__main__':
