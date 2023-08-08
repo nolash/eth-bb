@@ -22,16 +22,39 @@ class Filter(SyncFilter):
     def __init__(self):
         self.store_spec = None
         self.resolver_thread = threading.Thread(target=self.resolve)
+        self.resolver_history_thread = threading.Thread(target=self.resolve_history)
         self.resolver_spec = None
         self.resolver = None
         self.q = queue.Queue()
 
 
+    def prepare(self, ctx=None):
+        if ctx != None:
+            self.connect_resolver(ctx['usr'].get('bbresolver'))
+            self.connect_store(ctx['usr'].get('bbpath'))
+
+
     def stop(self):
-        logg.info('collecting ethbb resolver thread')
+        if self.resolver == None:
+            return
+        logg.info('collecting ethbb resolver threads')
+        self.resolver_histry_thread.join()
         self.q.put_nowait(None)
         self.q.join()
         self.resolver_thread.join()
+
+
+    def resolve_history(self):
+        store = sqlite3.connect(self.store_spec)
+        cur = store.cursor()
+        sql = 'SELECT hash from posts where resolved = 0';
+        res = cur.execute(sql)
+        for v in res.fetchall():
+            r = self.resolver.resolve(self.resolver_spec, v[0])
+            sql = 'UPDATE posts SET content = "{}", resolved = 1 WHERE hash = "{}"'.format(r, v[0])
+            logg.info('history update {}'.format(sql))
+            cur.execute(sql)
+            store.commit()
 
 
     def resolve_item(self, v):
@@ -79,6 +102,7 @@ class Filter(SyncFilter):
         self.store_spec = fp
 
         if self.resolver:
+            self.resolver_history_thread.start()
             self.resolver_thread.start()
 
         store = sqlite3.connect(self.store_spec)
@@ -109,8 +133,6 @@ resolved INT NOT NULL default 0
 
     def filter(self, conn, block, tx, **kwargs):
         ctx = kwargs.get('ctx')
-        self.connect_resolver(ctx['usr'].get('bbresolver'))
-        self.connect_store(ctx['usr'].get('bbpath'))
         if tx.status != Status.SUCCESS:
             return False
         if len(tx.payload) < 8+64+64:

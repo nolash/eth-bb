@@ -146,3 +146,25 @@ Default behavior is to _suppress_ any content that does not match the rendering 
 
 With the `--render-module` flag, the module use to generate the rendering can be defined directly on the command line. The module _must_ contain a class called `Builder` which satisfies the pseudo-interface defined in `eth_bb.render.Renderer`. This repository contains a module `example.render` that demonstrates a simple render override.
 
+
+## Scanning with eth-monitor
+
+**eth-monitor 0.8.2 or greater is required**.
+
+The [eth-monitor](https://git.defalsify.org/eth-monitor) tool enables syncing the transactions of the chain network with arbitrary processing code. The tools has a lot of features and switches to control its behavior, so please refer to the repository readme or its man page for details on how to use it.
+
+The `eth_bb.filter` package can be referenced on the command line when invoking `eth-monitor`, which stores all transactions matching the `add(bytes32,bytes32)` signature to be processed. This will save each matching transaction to a row in an sqlite database. It can be invoked against (future) transactions for the smart contract as:
+
+`eth-monitor --exec <contract_address> --filter eth_bb.filter --head`
+
+By default, the sql db file will be placed in the working directory. This can be changed by specifying the path explicitly:
+
+`eth-monitor --exec <contract_address> --filter eth_bb.filter --head -k bbpath=<path_to_db>`
+
+The filter can also resolve hashes against a [wala-like](https://git.defalsify.org/wala/) endpoint, by specifying the its url, e.g:
+
+`eth-monitor --exec <contract_address> --filter eth_bb.filter --head -k bbresolver=http://localhost:8080`
+
+For every successfully resolved item, the content will be set in the `content` column of the database, and the `reaolved` column will be set to true.
+
+On startup, any previously unresolved content will be attempted resolved. Failed resolution does not hinder operation.
