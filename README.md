@@ -165,15 +165,15 @@ There are currently three filters to handle resolution and storage of the matchi
 
 In the example below the sqlite flavor is used. It can be invoked against (future) transactions for the smart contract as:
 
-`eth-monitor --exec <contract_address> --filter eth_bb.filter --head`
+`eth-monitor --exec <contract_address> --filter eth_bb.filter.sqlite --head`
 
 By default, the sql db file will be placed in the working directory. This can be changed by specifying the path explicitly:
 
-`eth-monitor --exec <contract_address> --filter eth_bb.filter --head -k bbpath=<path_to_db>`
+`eth-monitor --exec <contract_address> --filter eth_bb.filter.sqlite --head -k bbpath=<path_to_db>`
 
 The filter can also resolve hashes against a [wala-like](https://git.defalsify.org/wala/) endpoint, by specifying the its url, e.g:
 
-`eth-monitor --exec <contract_address> --filter eth_bb.filter --head -k bbresolver=http://localhost:8080`
+`eth-monitor --exec <contract_address> --filter eth_bb.filter.sqlite --head -k bbresolver=http://localhost:8080`
 
 For every successfully resolved item, the content will be set in the `content` column of the database, and the `reaolved` column will be set to true.
 
