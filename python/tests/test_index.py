@@ -10,6 +10,7 @@ import os
 from eth_bb.index.fs import FsIndex
 
 logging.basicConfig(level=logging.DEBUG)
+logg = logging.getLogger()
 
 
 class TestFsindex(unittest.TestCase):
@@ -72,8 +73,67 @@ class TestFsindex(unittest.TestCase):
 
     
     def test_list(self):
+        topic_one = b'\xee' * 32
+        topic_two = b'\xaa' * 32
+        alice = b'\xdd' * 20
+        bob = b'\xcc' * 20
+        hsh = os.urandom(32)
+        topic_one_hex = topic_one.hex()
+        topic_two_hex = topic_two.hex()
+        alice_hex = alice.hex()
+        bob_hex = bob.hex()
 
-   
+        time = datetime.datetime.utcnow()
+        timestamp = datetime.datetime.timestamp(time)
+        time = datetime.datetime.fromtimestamp(int(timestamp))
+
+        idxb = FsIndex(self.dp, namespace='foo')
+        idxb.put(alice_hex, topic_one_hex, hsh.hex(), time)
+        idxb.put(bob_hex, topic_one_hex, hsh.hex(), time)
+        idxb.put(bob_hex, topic_two_hex, hsh.hex(), time)
+
+        ra = idxb.authors()
+        self.assertEqual(len(ra), 2)
+
+        r = idxb.topics(alice_hex)
+        self.assertEqual(len(r), 1)
+    
+        r = idxb.topics(bob_hex)
+        self.assertEqual(len(r), 2)
+
+
+    def test_iter(self):
+        topic_one = b'\xee' * 32
+        topic_two = b'\xaa' * 32
+        alice = b'\xdd' * 20
+        bob = b'\xcc' * 20
+        hsh = os.urandom(32)
+        topic_one_hex = topic_one.hex()
+        topic_two_hex = topic_two.hex()
+        alice_hex = alice.hex()
+        bob_hex = bob.hex()
+
+        time = datetime.datetime.utcnow()
+        timestamp = datetime.datetime.timestamp(time)
+        time = datetime.datetime.fromtimestamp(int(timestamp))
+
+        idxb = FsIndex(self.dp, namespace='foo')
+        idxb.put(alice_hex, topic_one_hex, hsh.hex(), time)
+        idxb.put(bob_hex, topic_one_hex, hsh.hex(), time)
+        idxb.put(bob_hex, topic_two_hex, hsh.hex(), time)
+
+        r = []
+        for v in iter(idxb):
+            vv = v[0] + v[1]
+            logg.debug('adding {}'.format(vv))
+            r.append(vv)
+        self.assertEqual(len(r), 3)
+        self.assertListEqual(r, [
+            bob_hex + topic_two_hex,
+            bob_hex + topic_one_hex,
+            alice_hex + topic_one_hex,
+            ])
+
 
 if __name__ == '__main__':
     unittest.main()

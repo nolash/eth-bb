@@ -141,7 +141,7 @@ class Filter(SyncFilter):
         logg.debug('nostore for {} {} {} {}'.format(author, topic, hsh, time))
 
 
-    def add(self, time, author, topic, hsh, ctx):
+    def add(self, time, author, topic, hsh, ctx=None):
         if self.idx != None:
             self.idx.put(author, topic, hsh, time)
         self.resolve(time, author, topic, hsh)

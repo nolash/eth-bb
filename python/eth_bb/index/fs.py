@@ -5,6 +5,8 @@ import datetime
 
 # external imports
 from hexathon import strip_0x
+from hexathon import valid as hex_valid
+from hexathon import uniform
 
 # local imports
 from .base import Index
@@ -79,3 +81,24 @@ class FsIndex(Index):
         timestamp = int.from_bytes(r[32:], byteorder='big')
         time = datetime.datetime.fromtimestamp(timestamp)
         return (hsh.hex(), time,)
+
+
+    def authors(self):
+        return self.__list(self.path)
+        
+
+    def topics(self, author):
+        path = os.path.join(self.path, author)
+        return self.__list(path)
+       
+
+    def __list(self, path):
+        r = []
+        for v in os.listdir(path):
+            if v[0] == '.':
+                continue
+            if not hex_valid(v):
+                logg.warning('invalid entry {} in index'.format(v))
+                continue
+            r.append(uniform(v))
+        return r

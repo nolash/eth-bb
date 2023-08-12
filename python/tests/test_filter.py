@@ -73,7 +73,6 @@ class TestFilter(EthTesterCase):
         shutil.rmtree(dp)
 
 
-
     def test_resolve(self):
         dp = tempfile.mkdtemp()
         ctx = {'usr': { 'bbresolver': 'eth_bb.unittest.resolve', 'bbindex': 'fs', 'bbpath': dp} }
