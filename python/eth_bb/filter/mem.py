@@ -23,12 +23,14 @@ class Filter(BaseFilter):
             self.contents[author] = {
                     topic: [],
                     }
-        self.resolve_index_push(time, author, topic, hsh, ctx)
+        self.resolve(time, author, topic, hsh)
 
 
-    def resolve_index_push(self, time, author, topic, hsh, ctx):
+    def resolve_index_push(self, time, author, topic, hsh):
         time = time.strftime("%Y%m%d")
-        o = (topic, author, time,)
+        o = (time, author, topic,)
+        if self.reverse.get(hsh, None) == None:
+            self.reverse[hsh] = []
         self.reverse[hsh].append(o)
 
 
@@ -41,7 +43,8 @@ class Filter(BaseFilter):
                 break
             except KeyError:
                 break
-            self.store_item_for(r[1], r[0], r[2], content, hsh)
+            self.store_item_for(r[0], r[1], r[2], content, hsh)
+        self.reverse[hsh] = None
 
 
     def store_item(self, content, hsh):

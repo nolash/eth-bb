@@ -32,7 +32,7 @@ class Filter(MemFilter):
         os.makedirs(dp, exist_ok=True)
     
 
-    def resolve_index_push_fs(self, time, author, topic, hsh, ctx):
+    def resolve_index_push_fs(self, time, author, topic, hsh):
         logg.debug('push fs')
         dp = os.path.join(self.p, '.resolve')
         os.makedirs(dp, exist_ok=True)
@@ -61,11 +61,6 @@ class Filter(MemFilter):
             self.store_item_for(time, author, topic, content, hsh)
         f.close()
         os.unlink(fp)
-
-
-    def add(self, time, author, topic, hsh, ctx):
-        self.resolve_index_push(time, author, topic, hsh, ctx)
-        self.resolve(hsh)
 
 
     def format(self, time, author, topic, content, hsh):

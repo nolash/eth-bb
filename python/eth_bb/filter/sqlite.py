@@ -42,7 +42,8 @@ resolved INT NOT NULL default 0
         sql = 'SELECT hash from posts where resolved = 0';
         res = cur.execute(sql)
         for v in res.fetchall():
-            self.store_item(r, v[0])
+            r = self.resolve_item(v[0])
+            #self.store_item(r, v[0])
 
 
     def store_item(self, content, hsh):
@@ -54,6 +55,13 @@ resolved INT NOT NULL default 0
         store.commit()
 
 
+    def resolve_index_push(self, time, author, topic, hsh):
+        pass
+
+
+    def resolve_index_process(self, content, hsh):
+        pass
+
 
     def add(self, time, author, topic, hsh, ctx):
         store = sqlite3.connect(self.store_spec)
@@ -61,5 +69,5 @@ resolved INT NOT NULL default 0
         sql = "INSERT INTO posts (date, address, context, hash) VALUES ('{}','{}','{}','{}')".format(time, author, topic, hsh)
         cur.execute(sql)
         store.commit()
-        self.resolve(hsh)
+        self.resolve(time, author, topic, hsh)
         logg.info('added author entry {} ctx {} time {}'.format(author, topic, time))

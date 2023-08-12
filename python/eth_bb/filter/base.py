@@ -36,13 +36,13 @@ class Filter(SyncFilter):
 
 
     def stop(self):
-        if self.resolver == None:
-            return
         logg.info('collecting ethbb resolver threads')
-        self.resolver_history_thread.join()
         self.q.put_nowait(None)
         self.q.join()
         self.resolver_thread.join()
+        if self.resolver == None:
+            return
+        self.resolver_history_thread.join()
 
 
     def resolve_history(self):
@@ -64,10 +64,17 @@ class Filter(SyncFilter):
             except queue.Empty:
                 continue
             if r == None:
-                break
-            self.resolve_item(r)
+                self.q.task_done()
+                return
+            time = r[0]
+            author = r[1]
+            topic = r[2]
+            hsh = r[3]
+            self.resolve_index_push(time, author, topic, hsh)
+            if self.resolver:
+                logg.debug('resolving {}'.format(hsh))
+                self.resolve_item(hsh)
             self.q.task_done()
-        self.q.task_done()
 
 
     def connect_resolver(self, ctx):
@@ -83,7 +90,7 @@ class Filter(SyncFilter):
     def connect(self):
         if self.resolver:
             self.resolver_history_thread.start()
-            self.resolver_thread.start()
+        self.resolver_thread.start()
 
 
     def filter(self, conn, block, tx, **kwargs):
@@ -112,9 +119,8 @@ class Filter(SyncFilter):
 
 
     def add(self, time, author, topic, hsh, ctx):
-        self.resolve(hsh)
+        self.resolve(time, author, toipc, hsh)
 
 
-    def resolve(self, hsh):
-        if self.resolver:
-            self.q.put_nowait(hsh)
+    def resolve(self, time, author, topic, hsh):
+        self.q.put_nowait((time, author, topic, hsh,))
