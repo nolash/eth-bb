@@ -10,6 +10,8 @@ logg = logging.getLogger(__name__)
 
 class Filter(BaseFilter):
 
+    index_size = 64+40+14
+
     def __init__(self):
         super(Filter, self).__init__()
         self.contents = {}
@@ -27,7 +29,7 @@ class Filter(BaseFilter):
 
 
     def resolve_index_push(self, time, author, topic, hsh):
-        time = time.strftime("%Y%m%d")
+        time = time.strftime("%Y%m%d%H%M%S")
         o = (time, author, topic,)
         if self.reverse.get(hsh, None) == None:
             self.reverse[hsh] = []

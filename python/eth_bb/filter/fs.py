@@ -1,6 +1,7 @@
 # standard imports
 import os
 import logging
+import datetime
 
 # external imports
 from hexathon import strip_0x
@@ -40,7 +41,7 @@ class Filter(MemFilter):
 
         data = strip_0x(topic)
         data += strip_0x(author)
-        data += time.strftime("%Y%m%d")
+        data += time.strftime("%Y%m%d%H%M%S")
         f = open(fp, 'a')
         f.write(data)
         f.close()
@@ -50,9 +51,8 @@ class Filter(MemFilter):
         fp = os.path.join(self.p, '.resolve', hsh)
         f = open(fp, 'r')
         i = 0
-        csz = 64+40+8
         while True:
-            r = f.read(csz)
+            r = f.read(self.index_size)
             if r == '':
                 break
             topic = r[:64]
@@ -68,12 +68,14 @@ class Filter(MemFilter):
 
 
     def store_item_for(self, time, author, topic, content, hsh):
+        date = time[:8]
+        time = datetime.datetime.strptime(time, "%Y%m%d%H%M%S")
         logg.debug('store item for {} {} {} {}'.format(time, author, topic, hsh))
         dp = os.path.join(self.p, author, topic)
         os.makedirs(dp, exist_ok=True)
 
         data = self.format(time, author, topic, content, hsh)
-        fp = os.path.join(dp, time)
+        fp = os.path.join(dp, date)
         f = open(fp, 'a')
         f.write(data)
         f.close()
