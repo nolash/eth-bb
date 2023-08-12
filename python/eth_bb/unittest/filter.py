@@ -9,5 +9,10 @@ class Filter(BaseFilter):
         self.contents = {}
 
 
-    def store_item(self, content, hsh):
-        self.contents[hsh] = content
+    def store_item(self, author, topic, hsh, time, content):
+        self.contents[hsh] = {
+                'content': content,
+                'time': time,
+                'author': author,
+                'topic': topic,
+                }

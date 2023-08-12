@@ -69,6 +69,10 @@ class TestFsindex(unittest.TestCase):
             self.assertIsNotNone(r)
             b.append(r)
         self.assertListEqual(a, b)
+
+    
+    def test_list(self):
+
    
 
 if __name__ == '__main__':

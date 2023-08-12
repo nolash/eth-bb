@@ -60,16 +60,16 @@ class Filter(SyncFilter):
 #        pass
 #
 #
-    def resolve_item(self, v):
+    def resolve_item(self, author, topic, hsh, time):
         if self.resolver == None:
             return 
-        r = self.resolver.resolve(self.resolver_spec, v)
+        r = self.resolver.resolve(self.resolver_spec, hsh)
         if len(r) == 0:
-            logg.warning('resolve hash {} failed'.format(v))
+            logg.warning('resolve hash {} failed'.format(hsh))
             return
-        self.store_item(r, v)
-#
-#
+        self.store_item(author, topic, hsh, time, r)
+
+
     def resolve_loop(self):
         while True:
             try:
@@ -83,9 +83,6 @@ class Filter(SyncFilter):
             author = r[0]
             topic = r[1]
             self.process_index(author, topic)
-            #if self.resolver:
-            #    logg.debug('resolving {}'.format(hsh))
-            #    self.resolve_item(hsh)
             self.q.task_done()
 
 
@@ -96,7 +93,7 @@ class Filter(SyncFilter):
             r = self.idx.next(author, topic)
             if r == None:
                 return
-            self.resolve_item(r[0])
+            self.resolve_item(author, topic, r[0], r[1])
 
 
     def connect_resolver(self, ctx):
@@ -140,12 +137,8 @@ class Filter(SyncFilter):
         return False
 
 
-   # def connect_store(self, ctx):
-   #     pass
-    
-
-    def store_item(self, content, hsh):
-        pass
+    def store_item(self, author, topic, hsh, time, content):
+        logg.debug('nostore for {} {} {} {}'.format(author, topic, hsh, time))
 
 
     def add(self, time, author, topic, hsh, ctx):

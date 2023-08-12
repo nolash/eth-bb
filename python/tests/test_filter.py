@@ -4,6 +4,7 @@ import json
 import logging
 import shutil
 import tempfile
+import datetime
 
 # external imports
 from chainlib.eth.tx import Tx
@@ -43,6 +44,8 @@ class TestFilter(EthTesterCase):
         #self.topic = hash_of_foo
         self.topic = '00' * 32
 
+        self.time = datetime.datetime.fromtimestamp(self.block.timestamp)
+
 
     def test_(self):
         ctx = None
@@ -80,7 +83,15 @@ class TestFilter(EthTesterCase):
         self.assertFalse(r)
         fltr.stop()
         shutil.rmtree(dp)
-        self.assertDictEqual(fltr.contents, {hash_of_foo: 'foo'})
+        o = {
+                hash_of_foo: {
+                    'author': self.author,
+                    'topic': self.topic,
+                    'time': self.time,
+                    'content': 'foo',
+                    }
+                }
+        self.assertDictEqual(fltr.contents, o)
 
 
 if __name__ == '__main__':
