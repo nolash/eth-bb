@@ -98,7 +98,12 @@ class FsIndex(Index):
 
     def __list(self, path):
         r = []
-        for v in os.listdir(path):
+        o = None
+        try:
+            o = os.listdir(path)
+        except FileNotFoundError:
+            return r
+        for v in o:
             if v[0] == '.':
                 continue
             if not hex_valid(v):

@@ -25,6 +25,7 @@ class Filter(SyncFilter):
         self.resolver_history_thread = threading.Thread(target=self.resolve_history)
         self.resolver_spec = None
         self.resolver = None
+        self.store = None
         self.idx = None
         self.q = queue.Queue()
 
