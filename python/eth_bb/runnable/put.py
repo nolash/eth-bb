@@ -119,7 +119,7 @@ logg.debug('settings loaded:\n{}'.format(settings))
 def main():
     contract_address = settings.get('EXEC')
     signer_address = settings.get('SENDER_ADDRESS')
-    ctx = settings.get('TOPIC')
+    topic = settings.get('TOPIC')
     content = settings.get('CONTENT')
     conn = settings.get('CONN')
     c = BB(
@@ -134,11 +134,6 @@ def main():
         conn.do(o)
         if settings.get('WAIT'):
             r = conn.wait(tx_hash_hex)
-            if logg.isEnabledFor(logging.DEBUG):
-                sender_balance = balance(conn, g, token_address, signer_address, id_generator=settings.get('RPC_ID_GENERATOR'))
-                recipient_balance = balance(conn, g, token_address, recipient, id_generator=settings.get('RPC_ID_GENERATOR'))
-                logg.debug('sender {} balance after: {}'.format(signer_address, sender_balance))
-                logg.debug('recipient {} balance after: {}'.format(recipient, recipient_balance))
             if r['status'] == 0:
                 logg.critical('VM revert. Wish I could tell you more')
                 sys.exit(1)

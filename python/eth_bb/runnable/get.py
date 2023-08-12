@@ -186,7 +186,7 @@ def main():
     
     logg.debug('have offset {} limit {} step {}'.format(offset, limit, step))
     for i in range(offset, limit, step):
-        o = c.entry(contract_address, settings.get('AUTHOR'), i, ctx=settings.get('CONTEXT'), sender_address=sender_address)
+        o = c.entry(contract_address, settings.get('AUTHOR'), i, topic=settings.get('TOPIC'), sender_address=sender_address)
         try:
             r = conn.do(o)
         except JSONRPCException:

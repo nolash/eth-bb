@@ -5,7 +5,7 @@ pragma solidity >=0.8.0;
 contract BB {
 	mapping ( address => mapping ( bytes32 => bytes32[]) ) public entry;
 
-	event NewEntry(address indexed _address, bytes32 indexed _context, uint256 indexed _idx, bytes32 _content);
+	event NewEntry(address indexed _address, bytes32 indexed _topic, uint256 indexed _idx, bytes32 _content);
 
 	function add(bytes32 _ctx, bytes32 _content) public returns (uint256) {
 		bytes32[] storage ctxPost;

@@ -9,7 +9,7 @@ Let's compare this to a blog.
 
 A blog has a HTML render as default, but may provide alternate sources, like RSS, ActivityPub and more.
 
-In this case, the default render is plain text. But it's possible to create alternate versions by mutating the post context. We'll see how. But let's get set up first.
+In this case, the default render is plain text. But it's possible to create alternate versions by mutating the post topic. We'll see how. But let's get set up first.
 
 
 ## Setup
@@ -57,9 +57,9 @@ eth-get <hash> -r -o contract
 
 ## Adding posts
 
-Add a post with the `add(context,content)` smart contract method.
+Add a post with the `add(topic,content)` smart contract method.
 
-The context is like a subdomain. `bytes32(0)` means "global context."
+The topic is like a subdomain. `bytes32(0)` means "global topic."
 
 
 ### Using the tool
@@ -69,53 +69,53 @@ This package defines the tool `eth-bb-put`.
 After the contract has been published, posts can be added using the `eth-bb` tool. Here are some examples:
 
 ```
-# publish plain text content hash (global context)
+# publish plain text content hash (global topic)
 eth-bb-put -y <keyfile_path> -e <contract_address> --fee-limit 100000 <256_bit_content_hash>
 
-# publish plain text from file (global context)
+# publish plain text from file (global topic)
 eth-bb-put -y <keyfile_path> -e <contract_address> --fee-limit 100000 --file <file_to_publish>
 
-# publish plain text from file, with a context
-eth-bb-put -y <keyfile_path> -e <contract_address> --context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --fee-limit 100000 --file <file_to_publish>
+# publish plain text from file, with a topic
+eth-bb-put -y <keyfile_path> -e <contract_address> --topic 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --fee-limit 100000 --file <file_to_publish>
 
 # publish rss content from hash 
 eth-bb-put -y <keyfile_path> -e <contract_address> --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
 
-# publish rss content from hash in context
-eth-bb-put -y <keyfile_path> -e <contract_address> --context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
+# publish rss content from hash in topic
+eth-bb-put -y <keyfile_path> -e <contract_address> --topic 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
 ```
 
 
-#### Calculating the context
+#### Calculating the topic
 
-If the `--context` parameter is given by itself, the entry will be recorded in the smart contract under that 256-bit context.
+If the `--topic` parameter is given by itself, the entry will be recorded in the smart contract under that 256-bit topic.
 
-If no `--context` parameter is given, the entry will be recorded in the smart conrtact under the context `bytes32(0x0)`
+If no `--topic` parameter is given, the entry will be recorded in the smart conrtact under the topic `bytes32(0x0)`
 
-If `--mime` is specified, then the UTF-8 byte value of the string passed to the argument will be appended to the 256 bit context (the corresponding byte value of the hex), separated by "." (0x2E). The context used for the smart contract submission will be the sha256 hash of that data.
+If `--mime` is specified, then the UTF-8 byte value of the string passed to the argument will be appended to the 256 bit topic (the corresponding byte value of the hex), separated by "." (0x2E). The topic used for the smart contract submission will be the sha256 hash of that data.
 
-For example; with `--context 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae` and `--mime foo/bar`, the resulting context will be `3087da3a4531097111e85c59fe75593c92b92b4cf55bc3071224ed6c14cb48b9`.
+For example; with `--topic 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae` and `--mime foo/bar`, the resulting topic will be `3087da3a4531097111e85c59fe75593c92b92b4cf55bc3071224ed6c14cb48b9`.
 
 
 ## Retrieving posts
 
-Number of posts for a specific contexts is retrieved with the smart contract method `entryCount(signer,context)`.
+Number of posts for a specific topics is retrieved with the smart contract method `entryCount(signer,topic)`.
 
-A single post in a specific contexts is retrieved with the smart contract method `entry(signer,context,idx)`, where `idx` is the zero-indexed index of the post (i.e. `entryCount(...)-1`).
+A single post in a specific topics is retrieved with the smart contract method `entry(signer,topic,idx)`, where `idx` is the zero-indexed index of the post (i.e. `entryCount(...)-1`).
 
 
 ### Using the tool
 
 This package defines the tool `eth-bb-get`
 
-It returns ranges of updates queried by author and context.
+It returns ranges of updates queried by author and topic.
 
 
 ```
-# get all updates from author Eb3907eCad74a0013c259D5874AE7f22DcBcC95C for the global context
+# get all updates from author Eb3907eCad74a0013c259D5874AE7f22DcBcC95C for the global topic
 eth-bb-get -e <contract_address> --fee-limit 100000 Eb3907eCad74a0013c259D5874AE7f22DcBcC95C
 
-# get next 3 updates after skipping first 10 from author Eb3907eCad74a0013c259D5874AE7f22DcBcC95C for the global context
+# get next 3 updates after skipping first 10 from author Eb3907eCad74a0013c259D5874AE7f22DcBcC95C for the global topic
 eth-bb-get -e <contract_address> --fee-limit 100000 --offset 10 --limit 3 Eb3907eCad74a0013c259D5874AE7f22DcBcC95C
 
 # get last three updates from same author in reverse order
@@ -153,7 +153,15 @@ With the `--render-module` flag, the module use to generate the rendering can be
 
 The [eth-monitor](https://git.defalsify.org/eth-monitor) tool enables syncing the transactions of the chain network with arbitrary processing code. The tools has a lot of features and switches to control its behavior, so please refer to the repository readme or its man page for details on how to use it.
 
-The `eth_bb.filter` package can be referenced on the command line when invoking `eth-monitor`, which stores all transactions matching the `add(bytes32,bytes32)` signature to be processed. This will save each matching transaction to a row in an sqlite database. It can be invoked against (future) transactions for the smart contract as:
+The `eth_bb.filter` package can be referenced on the command line when invoking `eth-monitor`, which stores all transactions matching the `add(bytes32,bytes32)` signature to be processed.
+
+There are currently three filters to handle resolution and storage of the matching transactions:
+
+* `eth_bb.filter.mem`: effectively noop (base class for fs)
+* `eth_bb.filter.fs`: stores records on filesystem, appended to `<bbpath>/<author>/<topic>/<YYYYMMDD>`
+* `eth_bb.filter.sqlite`: stores records in sqlite database)
+
+In the example below the sqlite flavor is used. It can be invoked against (future) transactions for the smart contract as:
 
 `eth-monitor --exec <contract_address> --filter eth_bb.filter --head`
 
