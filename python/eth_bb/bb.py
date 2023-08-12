@@ -59,12 +59,12 @@ class BB(TxFactory):
         return BB.bytecode()
 
 
-    def add(self, contract_address, sender_address, content, ctx=ZERO_CONTENT, tx_format=TxFormat.JSONRPC, id_generator=None):
+    def add(self, contract_address, sender_address, content, topic=ZERO_CONTENT, tx_format=TxFormat.JSONRPC, id_generator=None):
         enc = ABIContractEncoder()
         enc.method('add')
         enc.typ(ABIContractType.BYTES32)
         enc.typ(ABIContractType.BYTES32)
-        enc.bytes32(ctx)
+        enc.bytes32(topic)
         enc.bytes32(content)
         data = enc.get()
         tx = self.template(sender_address, contract_address, use_nonce=True)
@@ -73,7 +73,7 @@ class BB(TxFactory):
         return tx
 
 
-    def entry(self, contract_address, author_address, idx, ctx=ZERO_CONTENT, sender_address=ZERO_ADDRESS, id_generator=None):
+    def entry(self, contract_address, author_address, idx, topic=ZERO_CONTENT, sender_address=ZERO_ADDRESS, id_generator=None):
         j = JSONRPCRequest(id_generator)
         o = j.template()
         o['method'] = 'eth_call'
@@ -83,7 +83,7 @@ class BB(TxFactory):
         enc.typ(ABIContractType.BYTES32)
         enc.typ(ABIContractType.UINT256)
         enc.address(author_address)
-        enc.bytes32(ctx)
+        enc.bytes32(topic)
         enc.uint256(idx)
         data = add_0x(enc.get())
         tx = self.template(sender_address, contract_address)
@@ -94,7 +94,7 @@ class BB(TxFactory):
         return o
 
 
-    def entry_count(self, contract_address, author_address, context, sender_address=ZERO_ADDRESS, id_generator=None):
+    def entry_count(self, contract_address, author_address, topic, sender_address=ZERO_ADDRESS, id_generator=None):
         j = JSONRPCRequest(id_generator)
         o = j.template()
         o['method'] = 'eth_call'
@@ -103,7 +103,7 @@ class BB(TxFactory):
         enc.typ(ABIContractType.ADDRESS)
         enc.typ(ABIContractType.BYTES32)
         enc.address(author_address)
-        enc.bytes32(context)
+        enc.bytes32(topic)
         data = add_0x(enc.get())
         tx = self.template(sender_address, contract_address)
         tx = self.set_code(tx, data)

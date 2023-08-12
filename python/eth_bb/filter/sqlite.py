@@ -11,7 +11,8 @@ logg = logging.getLogger(__name__)
 
 class Filter(BaseFilter):
 
-    def connect_store(self, dp):
+    def connect_store(self, ctx):
+        dp = ctx['usr'].get('bbpath')
         if self.store_spec != None:
             return
 
@@ -54,12 +55,11 @@ resolved INT NOT NULL default 0
 
 
 
-    def add(self, time, author, ctx, content):
+    def add(self, time, author, topic, hsh, ctx):
         store = sqlite3.connect(self.store_spec)
         cur = store.cursor()
-        sql = "INSERT INTO posts (date, address, context, hash) VALUES ('{}','{}','{}','{}')".format(time, author, ctx, content)
+        sql = "INSERT INTO posts (date, address, context, hash) VALUES ('{}','{}','{}','{}')".format(time, author, topic, hsh)
         cur.execute(sql)
         store.commit()
-        if self.resolver:
-            self.q.put_nowait(content)
-        logg.info('added author entry {} ctx {} time {}'.format(author, ctx, time))
+        self.resolve(hsh)
+        logg.info('added author entry {} ctx {} time {}'.format(author, topic, time))

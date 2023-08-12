@@ -93,7 +93,7 @@ flags = arg_flags.STD_WRITE | arg_flags.EXEC | arg_flags.WALLET
 
 argparser = chainlib.eth.cli.ArgumentParser()
 argparser = process_args(argparser, arg, flags)
-argparser.add_argument('--context', type=str, default=ZERO_CONTENT, help='name of context')
+argparser.add_argument('--topic', type=str, default=ZERO_CONTENT, help='topic in 0x-prefixed hex or plain string')
 argparser.add_argument('--mime', type=str, help='post mime type')
 argparser.add_argument('--mode', type=str, help='human-friendly mime definition')
 argparser.add_argument('--file', type=str, help='create digest from file')
@@ -119,8 +119,8 @@ logg.debug('settings loaded:\n{}'.format(settings))
 def main():
     contract_address = settings.get('EXEC')
     signer_address = settings.get('SENDER_ADDRESS')
-    ctx = settings.get('CONTENT')
-    content = settings.get('CONTEXT')
+    ctx = settings.get('TOPIC')
+    content = settings.get('CONTENT')
     conn = settings.get('CONN')
     c = BB(
             settings.get('CHAIN_SPEC'),
@@ -129,7 +129,7 @@ def main():
             nonce_oracle=settings.get('NONCE_ORACLE'),
             )
 
-    (tx_hash_hex, o) = c.add(contract_address, signer_address, ctx, content, id_generator=settings.get('RPC_ID_GENERATOR'))
+    (tx_hash_hex, o) = c.add(contract_address, signer_address, content, topic=topic, id_generator=settings.get('RPC_ID_GENERATOR'))
     if settings.get('RPC_SEND'):
         conn.do(o)
         if settings.get('WAIT'):

@@ -21,7 +21,7 @@ class Filter(SyncFilter):
 
     def __init__(self):
         self.store_spec = None
-        self.resolver_thread = threading.Thread(target=self.resolve)
+        self.resolver_thread = threading.Thread(target=self.resolve_loop)
         self.resolver_history_thread = threading.Thread(target=self.resolve_history)
         self.resolver_spec = None
         self.resolver = None
@@ -30,8 +30,8 @@ class Filter(SyncFilter):
 
     def prepare(self, ctx=None):
         if ctx != None:
-            self.connect_resolver(ctx['usr'].get('bbresolver'))
-            self.connect_store(ctx['usr'].get('bbpath'))
+            self.connect_resolver(ctx)
+            self.connect_store(ctx)
             self.connect()
 
 
@@ -57,7 +57,7 @@ class Filter(SyncFilter):
         self.store_item(r, v)
 
 
-    def resolve(self):
+    def resolve_loop(self):
         while True:
             try:
                 r = self.q.get(timeout=1)
@@ -70,7 +70,8 @@ class Filter(SyncFilter):
         self.q.task_done()
 
 
-    def connect_resolver(self, resolver_spec):
+    def connect_resolver(self, ctx):
+        resolver_spec = ctx['usr'].get('bbresolver')
         if resolver_spec == None:
             return
         m = module_for(resolver_spec)
@@ -97,20 +98,23 @@ class Filter(SyncFilter):
 
         time = datetime.datetime.fromtimestamp(block.timestamp)
         author = strip_0x(tx.inputs[0])
-        context = strip_0x(data[8:64+8])
+        topic = strip_0x(data[8:64+8])
         content = strip_0x(data[8+64:])
-        self.add(time, author, context, content)
+        self.add(time, author, topic, content, ctx)
 
 
-    def connect_store(self, dp):
+    def connect_store(self, ctx):
         pass
 
 
     def store_item(self, content, hsh):
-        print('store {} {}'.format(content, hsh))
+        pass
 
 
-    def add(self, time, author, ctx, content):
-        logg.debug('adding {} {}'.format(time, author))
+    def add(self, time, author, topic, hsh, ctx):
+        self.resolve(hsh)
+
+
+    def resolve(self, hsh):
         if self.resolver:
-            self.q.put_nowait(content)
+            self.q.put_nowait(hsh)

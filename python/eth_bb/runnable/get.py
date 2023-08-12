@@ -122,7 +122,7 @@ flags = arg_flags.STD_WRITE | arg_flags.EXEC | arg_flags.WALLET
 
 argparser = chainlib.eth.cli.ArgumentParser()
 argparser = process_args(argparser, arg, flags)
-argparser.add_argument('--context', type=str, default=ZERO_CONTENT, help='name of context')
+argparser.add_argument('--topic', type=str, default=ZERO_CONTENT, help='topic in 0x-hex or plain string')
 argparser.add_argument('--mime', type=str, help='post mime type, overrides')
 argparser.add_argument('--mode', type=str, help='human-friendly mime definition')
 argparser.add_argument('--offset', type=int, default=0, help='start index')
@@ -166,7 +166,7 @@ def main():
     step = 1 
 
     if config.get('_REVERSE'):
-        o = c.entry_count(contract_address, settings.get('AUTHOR'), settings.get('CONTEXT'), sender_address=sender_address)
+        o = c.entry_count(contract_address, settings.get('AUTHOR'), settings.get('TOPIC'), sender_address=sender_address)
         r = conn.do(o)
         count = int(r, 16)
         offset = count - 1
@@ -178,7 +178,7 @@ def main():
         step = -1
     else:
         if limit == 0:
-            o = c.entry_count(contract_address, settings.get('AUTHOR'), settings.get('CONTEXT'), sender_address=sender_address)
+            o = c.entry_count(contract_address, settings.get('AUTHOR'), settings.get('TOPIC'), sender_address=sender_address)
             r = conn.do(o)
             count = int(r, 16)
             limit = count
