@@ -22,17 +22,28 @@ class Filter(SyncFilter):
     def __init__(self):
         self.store_spec = None
         self.resolver_thread = threading.Thread(target=self.resolve_loop)
-        self.resolver_history_thread = threading.Thread(target=self.resolve_history)
+#        self.resolver_history_thread = threading.Thread(target=self.resolve_history)
         self.resolver_spec = None
         self.resolver = None
+        self.idx = None
         self.q = queue.Queue()
 
 
     def prepare(self, ctx=None):
-        if ctx != None:
-            self.connect_resolver(ctx)
-            self.connect_store(ctx)
-            self.connect()
+        if ctx == None:
+            return
+        self.connect_index(ctx)
+        self.connect_resolver(ctx)
+        self.connect_renderer(ctx)
+        self.start(ctx)
+
+
+    def connect_index(self, ctx):
+        idx_type = ctx['usr'].get('bbindex', None)
+        if idx_type == 'fs':
+            from eth_bb.index.fs import FsIndex
+            path = ctx['usr'].get('bbpath', '.')
+            self.idx = FsIndex(path)
 
 
     def stop(self):
@@ -40,23 +51,25 @@ class Filter(SyncFilter):
         self.q.put_nowait(None)
         self.q.join()
         self.resolver_thread.join()
-        if self.resolver == None:
-            return
-        self.resolver_history_thread.join()
+#        if self.resolver == None:
+#            return
+#        self.resolver_history_thread.join()
 
 
-    def resolve_history(self):
-        pass
-
-
+#    def resolve_history(self):
+#        pass
+#
+#
     def resolve_item(self, v):
+        if self.resolver == None:
+            return 
         r = self.resolver.resolve(self.resolver_spec, v)
         if len(r) == 0:
             logg.warning('resolve hash {} failed'.format(v))
             return
         self.store_item(r, v)
-
-
+#
+#
     def resolve_loop(self):
         while True:
             try:
@@ -65,20 +78,32 @@ class Filter(SyncFilter):
                 continue
             if r == None:
                 self.q.task_done()
+                logg.info('exiting resolver loop')
                 return
-            time = r[0]
-            author = r[1]
-            topic = r[2]
-            hsh = r[3]
-            self.resolve_index_push(time, author, topic, hsh)
-            if self.resolver:
-                logg.debug('resolving {}'.format(hsh))
-                self.resolve_item(hsh)
+            author = r[0]
+            topic = r[1]
+            self.process_index(author, topic)
+            #if self.resolver:
+            #    logg.debug('resolving {}'.format(hsh))
+            #    self.resolve_item(hsh)
             self.q.task_done()
 
 
+    def process_index(self, author, topic):
+        if self.idx == None:
+            return
+        while True:
+            r = self.idx.next(author, topic)
+            if r == None:
+                return
+            self.resolve_item(r[0])
+
+
     def connect_resolver(self, ctx):
-        resolver_spec = ctx['usr'].get('bbresolver')
+        ctx_usr = ctx.get('usr')
+        if ctx_usr == None:
+            return
+        resolver_spec = ctx_usr.get('bbresolver')
         if resolver_spec == None:
             return
         m = module_for(resolver_spec)
@@ -87,10 +112,14 @@ class Filter(SyncFilter):
             self.resolver = m
 
 
-    def connect(self):
-        if self.resolver:
-            self.resolver_history_thread.start()
+    def start(self, ctx):
+#        if self.resolver:
+#            self.resolver_history_thread.start()
         self.resolver_thread.start()
+
+
+    def connect_renderer(self, ctx):
+        pass
 
 
     def filter(self, conn, block, tx, **kwargs):
@@ -104,23 +133,26 @@ class Filter(SyncFilter):
             return False
 
         time = datetime.datetime.fromtimestamp(block.timestamp)
-        author = strip_0x(tx.inputs[0])
+        author = strip_0x(tx.outputs[0])
         topic = strip_0x(data[8:64+8])
         content = strip_0x(data[8+64:])
         self.add(time, author, topic, content, ctx)
+        return False
 
 
-    def connect_store(self, ctx):
-        pass
-
+   # def connect_store(self, ctx):
+   #     pass
+    
 
     def store_item(self, content, hsh):
         pass
 
 
     def add(self, time, author, topic, hsh, ctx):
-        self.resolve(time, author, toipc, hsh)
+        if self.idx != None:
+            self.idx.put(author, topic, hsh, time)
+        self.resolve(time, author, topic, hsh)
 
 
     def resolve(self, time, author, topic, hsh):
-        self.q.put_nowait((time, author, topic, hsh,))
+        self.q.put_nowait((author, topic,))

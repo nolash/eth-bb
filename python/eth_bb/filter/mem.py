@@ -15,27 +15,8 @@ class Filter(BaseFilter):
     def __init__(self):
         super(Filter, self).__init__()
         self.contents = {}
-        self.reverse = {}
 
     
-    def add(self, time, author, topic, hsh, ctx):
-        if self.contents.get(author, None) == None:
-            self.contents[author] = {}
-        if self.contents[author].get(topic, None) == None:
-            self.contents[author] = {
-                    topic: [],
-                    }
-        self.resolve(time, author, topic, hsh)
-
-
-    def resolve_index_push(self, time, author, topic, hsh):
-        time = time.strftime("%Y%m%d%H%M%S")
-        o = (time, author, topic,)
-        if self.reverse.get(hsh, None) == None:
-            self.reverse[hsh] = []
-        self.reverse[hsh].append(o)
-
-
     def resolve_index_process(self, content, hsh):
         while True:
             r = None
@@ -50,10 +31,4 @@ class Filter(BaseFilter):
 
 
     def store_item(self, content, hsh):
-        author = self.reverse_author[hsh]
-        topic  = self.reverse_topic[hsh]
-        o = {
-                'hash': hsh,
-                'content': content,
-                }
-        self.contents[author][topic].append(o)
+        logg.debug('stored {} {}'.format(content, hsh))
