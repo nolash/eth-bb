@@ -130,7 +130,8 @@ class TestFilter(EthTesterCase):
         self.assertFalse(r)
         fltr.stop()
 
-        fp = os.path.join(dp, '.content', self.author, self.topic)
+        t = self.time.strftime('%Y%m%d')
+        fp = os.path.join(dp, '.content', self.author, self.topic, t)
         f = open(fp, 'r')
         r = f.read()
         f.close()
