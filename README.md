@@ -195,12 +195,12 @@ This will append updates to `/tmp/bbstore/<author>/<topic>`. Updates are in bina
 
 The filter will resolve hashes against a [wala-like](https://git.defalsify.org/wala/) endpoint on `https://localhost:8000`.
 
-Since `bbstore=fs` is defined, any successfully resolved item will be send to the `FsDateStore`, i.e. appended to the file `<bbpath>/.contents/<author>/<topic>/<YYYYmmdd>`.
+Since `bbstore=fs` is defined, any successfully resolved item will be send to the `FsDateStore`, i.e. appended to the file `/tmp/bbstore/.contents/<author>/<topic>/<YYYYmmdd>`.
 
 **Important** notice in this example `bbindex` has not been defined. This presupposes that the previous invocation was made to populate the index. This invocation uses the `--head` argument, which will not process historical blocks, but will initiate historical resolution of content.
 
 
-## Caveats
+### Caveats
 
 For sure: Many, many, many.
 
