@@ -76,25 +76,27 @@ eth-bb-put -y <keyfile_path> -e <contract_address> --fee-limit 100000 <256_bit_c
 eth-bb-put -y <keyfile_path> -e <contract_address> --fee-limit 100000 --file <file_to_publish>
 
 # publish plain text from file, with a topic
-eth-bb-put -y <keyfile_path> -e <contract_address> --topic 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --fee-limit 100000 --file <file_to_publish>
+eth-bb-put -y <keyfile_path> -e <contract_address> --topic 0x2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --fee-limit 100000 --file <file_to_publish>
 
 # publish rss content from hash 
 eth-bb-put -y <keyfile_path> -e <contract_address> --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
 
-# publish rss content from hash in topic
-eth-bb-put -y <keyfile_path> -e <contract_address> --topic 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
+# publish rss content from hash in topic, with topic defined as string instead of hex
+eth-bb-put -y <keyfile_path> -e <contract_address> --topic foo --mime application/rss+xml --fee-limit 100000 <256_bit_content_hash>
 ```
 
 
 #### Calculating the topic
 
-If the `--topic` parameter is given by itself, the entry will be recorded in the smart contract under that 256-bit topic.
-
 If no `--topic` parameter is given, the entry will be recorded in the smart conrtact under the topic `bytes32(0x0)`
+
+If the `--topic` parameter is given as a string, the topic will be the `sha256` sum of that string.
+
+Otherwise, the `--topic` parameter _must_ be prefixed with `0x` and _must_ represent 32 bytes.
 
 If `--mime` is specified, then the UTF-8 byte value of the string passed to the argument will be appended to the 256 bit topic (the corresponding byte value of the hex), separated by "." (0x2E). The topic used for the smart contract submission will be the sha256 hash of that data.
 
-For example; with `--topic 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae` and `--mime foo/bar`, the resulting topic will be `3087da3a4531097111e85c59fe75593c92b92b4cf55bc3071224ed6c14cb48b9`.
+For example; with `--topic 0x2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae` (or `--topic foo`) and `--mime foo/bar`, the resulting topic will be `3087da3a4531097111e85c59fe75593c92b92b4cf55bc3071224ed6c14cb48b9`.
 
 
 ## Retrieving posts
