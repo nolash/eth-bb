@@ -15,7 +15,9 @@ from hexathon import strip_0x
 
 # local imports
 from eth_bb.unittest.filter import Filter
+from eth_bb.filter.base import Filter as BaseFilter
 from eth_bb.index.fs import FsIndex
+from eth_bb.store.date import FsDateStore
 
 logging.basicConfig(level=logging.DEBUG)
 logg = logging.getLogger()
@@ -118,7 +120,25 @@ class TestFilter(EthTesterCase):
         fltr.prepare(ctx)
         fltr.stop()
 
-       
 
+    def test_store(self):
+        dp = tempfile.mkdtemp()
+        ctx = {'usr': { 'bbresolver': 'eth_bb.unittest.resolve', 'bbindex': 'fs', 'bbpath': dp, 'bbstore': 'fs'} }
+        fltr = BaseFilter()
+        fltr.prepare(ctx)
+        r = fltr.filter(self.rpc, self.block, self.tx, ctx=ctx)
+        self.assertFalse(r)
+        fltr.stop()
+
+        fp = os.path.join(dp, '.content', self.author, self.topic)
+        f = open(fp, 'r')
+        r = f.read()
+        f.close()
+
+        cs = FsDateStore(dp) 
+        expect = cs.render(self.author, self.topic, None, self.time, 'foo')
+        self.assertEqual(r, expect)
+
+       
 if __name__ == '__main__':
     unittest.main()

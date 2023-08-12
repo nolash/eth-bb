@@ -34,7 +34,7 @@ class Filter(SyncFilter):
             return
         self.connect_index(ctx)
         self.connect_resolver(ctx)
-        self.connect_renderer(ctx)
+        self.connect_store(ctx)
         self.start(ctx)
 
 
@@ -118,8 +118,17 @@ class Filter(SyncFilter):
         self.resolver_thread.start()
 
 
-    def connect_renderer(self, ctx):
-        pass
+    def connect_store(self, ctx):
+        ctx_usr = ctx.get('usr')
+        if ctx_usr == None:
+            return
+        store_type = ctx_usr.get('bbstore')
+        if store_type == 'fs':
+            from eth_bb.store.date import FsDateStore
+            dp = ctx_usr.get('bbpath', '.')
+            dp = os.path.join(dp, '.content')
+            self.store = FsDateStore(dp)
+            logg.debug('have store {}'.format(self.store))
 
 
     def filter(self, conn, block, tx, **kwargs):
@@ -141,6 +150,8 @@ class Filter(SyncFilter):
 
 
     def store_item(self, author, topic, hsh, time, content):
+        if self.store != None:
+            return self.store.put(author, topic, hsh, time, content)
         logg.debug('nostore for {} {} {} {}'.format(author, topic, hsh, time))
 
 
