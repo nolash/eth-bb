@@ -47,12 +47,32 @@ class Filter(SyncFilter):
             self.idx = FsIndex(path)
 
 
+    def connect_resolver(self, ctx):
+        ctx_usr = ctx.get('usr')
+        if ctx_usr == None:
+            return
+        resolver_spec = ctx_usr.get('bbresolver')
+        if resolver_spec == None:
+            return
+        m = module_for(resolver_spec)
+        if m != None:
+            self.resolver_spec = resolver_spec
+            self.resolver = m
+
+
+    def start(self, ctx):
+        if self.resolver:
+            self.resolver_history_thread.start()
+            self.resolver_thread.start()
+
+
     def stop(self):
-        logg.info('collecting ethbb resolver threads')
-        self.resolver_history_thread.join()
-        self.q.put_nowait(None)
-        self.q.join()
-        self.resolver_thread.join()
+        if self.resolver:
+            logg.info('collecting ethbb resolver threads')
+            self.resolver_history_thread.join()
+            self.q.put_nowait(None)
+            self.q.join()
+            self.resolver_thread.join()
 
 
     def resolve_history(self):
@@ -99,25 +119,6 @@ class Filter(SyncFilter):
             if r == None:
                 return
             self.resolve_item(author, topic, r[0], r[1])
-
-
-    def connect_resolver(self, ctx):
-        ctx_usr = ctx.get('usr')
-        if ctx_usr == None:
-            return
-        resolver_spec = ctx_usr.get('bbresolver')
-        if resolver_spec == None:
-            return
-        m = module_for(resolver_spec)
-        if m != None:
-            self.resolver_spec = resolver_spec
-            self.resolver = m
-
-
-    def start(self, ctx):
-        self.resolver_history_thread.start()
-        self.resolver_thread.start()
-
 
     def connect_store(self, ctx):
         ctx_usr = ctx.get('usr')

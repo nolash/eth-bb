@@ -157,24 +157,54 @@ The [eth-monitor](https://git.defalsify.org/eth-monitor) tool enables syncing th
 
 The `eth_bb.filter` package can be referenced on the command line when invoking `eth-monitor`, which stores all transactions matching the `add(bytes32,bytes32)` signature to be processed.
 
-There are currently three filters to handle resolution and storage of the matching transactions:
+Using the `--context-key` flag, the behavior of the filter can be adjusted.
 
-* `eth_bb.filter.mem`: effectively noop (base class for fs)
-* `eth_bb.filter.fs`: stores records on filesystem, appended to `<bbpath>/<author>/<topic>/<YYYYMMDD>`
-* `eth_bb.filter.sqlite`: stores records in sqlite database)
+Without _any_ `--context-key` parameters, no processing will be done (but eth-monitor rendering is of course still available).
 
-In the example below the sqlite flavor is used. It can be invoked against (future) transactions for the smart contract as:
+With `--context-key bbindex=fs` an index of retrieved hashes sorted by author and topic will be stored to the filesystem. The storage path is `<workdir>/.index` unless `--context-key bbpath=<path>` has been specified, in which case it will be `<path>/.index`
 
-`eth-monitor --exec <contract_address> --filter eth_bb.filter.sqlite --head`
+With `--context-key bbresolver=<resolver>` the retrieved hashes will be attempted resolved against the given specification. The argument may be a module path, or a hardcoded identifier. See below for an identifier list.
 
-By default, the sql db file will be placed in the working directory. This can be changed by specifying the path explicitly:
+The resolver in itself will not have any effect unless a store is defined for rendering the result. This is defined using the `--context-key bbstore=<store>` instruction. `<store>` may be any module implemetion a method `def put(author, topic, hsh, time, content)`. The hard-coded identifier `--context-key bbstore=fs` resolves to `eth_bb.store.date` which stores resolved content to the file system, to a file whose path follows the template:
 
-`eth-monitor --exec <contract_address> --filter eth_bb.filter.sqlite --head -k bbpath=<path_to_db>`
+* `<bbpath>/<author>/<topic>/<YYYYmmdd>`
 
-The filter can also resolve hashes against a [wala-like](https://git.defalsify.org/wala/) endpoint, by specifying the its url, e.g:
+If `<bbstore>` is defined without a resolver, nothing will be output to the store.
 
-`eth-monitor --exec <contract_address> --filter eth_bb.filter.sqlite --head -k bbresolver=http://localhost:8080`
 
-For every successfully resolved item, the content will be set in the `content` column of the database, and the `reaolved` column will be set to true.
+### Historical resolution
 
-On startup, any previously unresolved content will be attempted resolved. Failed resolution does not hinder operation.
+If resolution has been activated (i.e. `bbresolver`, `bbstore` and `bbindex` are defined), the filter will attempt to resolve any previously unresolved content items from the index.
+
+This may currently have unexpected consequences. See *CAVEATS* for details.
+
+
+### Invoking without store and resolution
+
+`eth-monitor --exec <contract_address> --filter eth_bb.filter --offset <block_height> --context-key bbpath=/tmp/bbstore --context-key bbindex=fs`
+
+This will append updates to `/tmp/bbstore/<author>/<topic>`. Updates are in binary format. They are 36 bytes long, stuctured as follows:
+
+* `00-32`: Content hash
+* `32-36`: Big-endian timestamp integer, which is the block confirmation time of the content
+
+
+### Invoking with store and resolution
+
+`eth-monitor --exec <contract_address> --filter eth_bb.filter --head --context-key bbpath=/tmp/bbstore --context-key bbstore=fs --context-key bbresolver=http://localhost:8000`
+
+The filter will resolve hashes against a [wala-like](https://git.defalsify.org/wala/) endpoint on `https://localhost:8000`.
+
+Since `bbstore=fs` is defined, any successfully resolved item will be send to the `FsDateStore`, i.e. appended to the file `<bbpath>/.contents/<author>/<topic>/<YYYYmmdd>`.
+
+**Important** notice in this example `bbindex` has not been defined. This presupposes that the previous invocation was made to populate the index. This invocation uses the `--head` argument, which will not process historical blocks, but will initiate historical resolution of content.
+
+
+## Caveats
+
+For sure: Many, many, many.
+
+Some well-known ones are:
+
+* historical sync will use lexical hash order instead of chronological, which will mess up the render (time) order in FsDateStore for updates that are made more frequently than daily.
+* tests are flaky :/, some file not found errors pop up time and again.
