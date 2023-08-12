@@ -25,9 +25,11 @@ class TestFsindex(unittest.TestCase):
 
 
     def test_(self):
-        self.idx.load_cursor()
         topic = b'\xee' * 32
         author = b'\xdd' * 20
+        topic_hex = topic.hex()
+        author_hex = author.hex()
+        self.idx.load_cursor(author_hex, topic_hex)
         hsh = b'\xcc' * 32
         time = datetime.datetime.utcnow()
         timestamp = datetime.datetime.timestamp(time)

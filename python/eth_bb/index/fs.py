@@ -22,29 +22,32 @@ class FsIndex(Index):
         self.path = os.path.join(path, '.index')
         self.ns = namespace
         os.makedirs(self.path, exist_ok=True)
-        self.load_cursor()
         
 
-    def load_cursor(self):
-        cp = os.path.join(self.path, '.' + self.ns)
+    def load_cursor(self, author, topic):
+        crsr = 0
+        cp = os.path.join(self.path, author, '.' + self.ns + '_' + topic)
         try:
             f = open(cp, 'rb')
             r = f.read(4)
             f.close()
-            self.crsr = int.from_bytes(r, byteorder='big')
-            logg.debug('cursor "{}" is {}'.format(self.ns, self.crsr))
+            crsr = int.from_bytes(r, byteorder='big')
+            logg.debug('cursor "{}" for {}/{} load {}'.format(self.ns, author, topic, crsr))
         except FileNotFoundError:
-            self.save_cursor(0) 
+            self.save_cursor(author, topic, 0) 
+        return crsr
    
 
-    def save_cursor(self, v):
-        cp = os.path.join(self.path, '.' + self.ns)
+    def save_cursor(self, author, topic, v):
+        dp = os.path.join(self.path, author)
+        os.makedirs(dp, exist_ok=True)
+        cp = os.path.join(dp, '.' + self.ns + '_' + topic)
         d = v.to_bytes(4, byteorder='big')
         f = open(cp, 'wb')
         r = f.write(d)
         f.close()
-        self.crsr = v
-        logg.debug('cursor "{}" saved as {}'.format(self.ns, v))
+        logg.debug('cursor "{}" for {}/{} save {}'.format(self.ns, author, topic, v))
+        return v
 
 
     def put(self, author, topic, hsh, time):
@@ -70,12 +73,13 @@ class FsIndex(Index):
             f = open(fp, 'rb')
         except FileNotFoundError:
             return None
-        f.seek(self.crsr)
+        crsr = self.load_cursor(author, topic)
+        f.seek(crsr)
         r = f.read(self.step)
         if len(r) == 0:
             f.close()
             return None
-        self.save_cursor(f.tell())
+        self.save_cursor(author, topic, f.tell())
         f.close()
         hsh = r[:32]
         timestamp = int.from_bytes(r[32:], byteorder='big')

@@ -41,7 +41,8 @@ class Index():
         self.iter_authors = []
         for v in self.authors():
             self.iter_authors.append(v)
-        self.iter_topics = self.topics(self.iter_authors[0])
+        if len(self.iter_authors) > 0:
+            self.iter_topics = self.topics(self.iter_authors[0])
         return self
 
 

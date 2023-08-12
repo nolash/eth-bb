@@ -22,7 +22,7 @@ class Filter(SyncFilter):
     def __init__(self):
         self.store_spec = None
         self.resolver_thread = threading.Thread(target=self.resolve_loop)
-#        self.resolver_history_thread = threading.Thread(target=self.resolve_history)
+        self.resolver_history_thread = threading.Thread(target=self.resolve_history)
         self.resolver_spec = None
         self.resolver = None
         self.idx = None
@@ -48,18 +48,20 @@ class Filter(SyncFilter):
 
     def stop(self):
         logg.info('collecting ethbb resolver threads')
+        self.resolver_history_thread.join()
         self.q.put_nowait(None)
         self.q.join()
         self.resolver_thread.join()
-#        if self.resolver == None:
-#            return
-#        self.resolver_history_thread.join()
 
 
-#    def resolve_history(self):
-#        pass
-#
-#
+    def resolve_history(self):
+        if self.idx == None:
+            return
+        for v in iter(self.idx):
+            logg.debug('history item {}'.format(v))
+            self.q.put_nowait((v[0], v[1],))
+
+
     def resolve_item(self, author, topic, hsh, time):
         if self.resolver == None:
             return 
@@ -89,6 +91,8 @@ class Filter(SyncFilter):
     def process_index(self, author, topic):
         if self.idx == None:
             return
+        if self.resolver == None:
+            return
         while True:
             r = self.idx.next(author, topic)
             if r == None:
@@ -110,8 +114,7 @@ class Filter(SyncFilter):
 
 
     def start(self, ctx):
-#        if self.resolver:
-#            self.resolver_history_thread.start()
+        self.resolver_history_thread.start()
         self.resolver_thread.start()
 
 

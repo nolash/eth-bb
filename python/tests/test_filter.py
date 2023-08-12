@@ -5,6 +5,7 @@ import logging
 import shutil
 import tempfile
 import datetime
+import os
 
 # external imports
 from chainlib.eth.tx import Tx
@@ -92,6 +93,32 @@ class TestFilter(EthTesterCase):
                 }
         self.assertDictEqual(fltr.contents, o)
 
+
+    def test_resolve_history(self):
+        dp = tempfile.mkdtemp()
+        ctx = {'usr': {'bbindex': 'fs', 'bbpath': dp} }
+        fltr = Filter()
+        fltr.prepare(ctx)
+        r = fltr.filter(self.rpc, self.block, self.tx, ctx=ctx)
+        self.assertFalse(r)
+
+        alice = os.urandom(20)
+        alice_hex = alice.hex()
+        o = json.loads(tx_src)
+        tx_two = Tx.from_src(o)
+        tx_two.outputs[0] = alice_hex
+        o = json.loads(rcpt_src)
+        tx_two.apply_receipt(o)
+        r = fltr.filter(self.rpc, self.block, tx_two, ctx=ctx)
+        self.assertFalse(r)
+        fltr.stop()
+
+        ctx = {'usr': { 'bbresolver': 'eth_bb.unittest.resolve', 'bbindex': 'fs', 'bbpath': dp} }
+        fltr = Filter()
+        fltr.prepare(ctx)
+        fltr.stop()
+
+       
 
 if __name__ == '__main__':
     unittest.main()
