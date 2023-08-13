@@ -69,4 +69,3 @@ class Index():
         if topic == None:
             topic = self.iter_topics.pop(0)
         return (author, topic,)
-
