@@ -124,12 +124,23 @@ class Filter(SyncFilter):
         ctx_usr = ctx.get('usr')
         if ctx_usr == None:
             return
-        store_type = ctx_usr.get('bbstore')
+        store_type_spec = ctx_usr.get('bbstore')
+        store_type = None
+        store_mode = 'append'
+        if store_type_spec == 'fs':
+            store_type = 'fs'
+        if store_type_spec == 'fs_append':
+            store_type = 'fs'
+        if store_type_spec == 'fs_prepend':
+            store_type = 'fs'
+            store_mode = 'prepend'
+
         if store_type == 'fs':
-            from eth_bb.store.date import FsDateStore
+            from eth_bb.store.date import Store
             dp = ctx_usr.get('bbpath', '.')
             dp = os.path.join(dp, '.content')
-            self.store = FsDateStore(dp)
+            reverse = store_mode=='prepend'
+            self.store = Store(dp, reverse=reverse)
             logg.debug('have store {}'.format(self.store))
 
 
