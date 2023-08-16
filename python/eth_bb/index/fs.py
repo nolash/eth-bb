@@ -61,7 +61,6 @@ class FsIndex(Index):
         f = open(fp, 'ab')
         f.write(b)
         f.close()
-        logg.debug('put to {}'.format(fp))
         return (time, author, topic, hsh,)
 
 

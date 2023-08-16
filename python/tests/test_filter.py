@@ -18,6 +18,7 @@ from eth_bb.unittest.filter import Filter
 from eth_bb.filter.base import Filter as BaseFilter
 from eth_bb.index.fs import FsIndex
 from eth_bb.store.date import Store as FsDateStore
+from eth_bb.util import clean
 
 logging.basicConfig(level=logging.DEBUG)
 logg = logging.getLogger()
@@ -46,7 +47,6 @@ class TestFilter(EthTesterCase):
         self.author = strip_0x(self.tx.outputs[0])
         #self.topic = hash_of_foo
         self.topic = '00' * 32
-
         self.time = datetime.datetime.fromtimestamp(self.block.timestamp)
 
 
@@ -130,8 +130,9 @@ class TestFilter(EthTesterCase):
         self.assertFalse(r)
         fltr.stop()
 
+        (author, topic, hsh, time) = clean(self.author, self.topic)
         t = self.time.strftime('%Y%m%d')
-        fp = os.path.join(dp, '.content', self.author, self.topic, t)
+        fp = os.path.join(dp, '.content', author, topic, t)
         f = open(fp, 'r')
         r = f.read()
         f.close()
@@ -150,8 +151,9 @@ class TestFilter(EthTesterCase):
         self.assertFalse(r)
         fltr.stop()
 
+        (author, topic, hsh, time) = clean(self.author, self.topic)
         t = self.time.strftime('%Y%m%d')
-        fp = os.path.join(dp, '.content', self.author, self.topic, t)
+        fp = os.path.join(dp, '.content', author, topic, t)
         f = open(fp, 'r')
         r = f.read()
         f.close()
