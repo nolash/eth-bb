@@ -20,31 +20,51 @@ class TestRingStore(unittest.TestCase):
 
     def setUp(self):
         self.d = tempfile.mkdtemp()
-        self.store = RingStore(self.d, 1024, reverse=True)
 
 
     def tearDown(self):
         shutil.rmtree(self.d)
 
 
-    def test_ring_puts(self):
+    def test_ring_put_prepend(self):
+        store = RingStore(self.d, 1024, reverse=True)
         topic = os.urandom(32)
         author = os.urandom(32)
         topic_hex = topic.hex()
         author_hex = author.hex()
         fg = faker.Faker()
         data = fg.texts(32)
-        logg.debug(data)
         for v in data:
             hsh = os.urandom(32)
             hsh_hex = hsh.hex()
-            self.store.put(author_hex, topic_hex, hsh_hex, datetime.datetime.utcnow(), v)
+            store.put(author_hex, topic_hex, hsh_hex, datetime.datetime.utcnow(), v)
 
         fp = os.path.join(self.d, author_hex, topic_hex, 'index.txt')
         f = open(fp, 'r')
         r = f.read()
         f.close()
         self.assertLessEqual(len(r), 1024)
+
+
+    def test_ring_put_append(self):
+        store = RingStore(self.d, 1024)
+        topic = os.urandom(32)
+        author = os.urandom(32)
+        topic_hex = topic.hex()
+        author_hex = author.hex()
+        fg = faker.Faker()
+        data = fg.texts(32)
+        for v in data:
+            hsh = os.urandom(32)
+            hsh_hex = hsh.hex()
+            store.put(author_hex, topic_hex, hsh_hex, datetime.datetime.utcnow(), v)
+
+        fp = os.path.join(self.d, author_hex, topic_hex, 'index.txt')
+        f = open(fp, 'r')
+        r = f.read()
+        f.close()
+        self.assertLessEqual(len(r), 1024)
+        logg.debug('r {}'.format(len(r)))
 
 
 if __name__ == '__main__':
