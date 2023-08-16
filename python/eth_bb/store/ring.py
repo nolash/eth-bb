@@ -6,6 +6,7 @@ import tempfile
 
 # local imports
 from .base import Store as BaseStore
+from eth_bb.util import clean
 
 logg = logging.getLogger(__name__)
 
@@ -20,6 +21,7 @@ class Store(BaseStore):
 
 
     def put(self, author, topic, hsh, time, content, render=True):
+        (author, topic, hsh, time) = clean(author, topic, hsh, time)
         dp = os.path.join(self.path, author, topic)
         os.makedirs(dp, exist_ok=True)
         fp = os.path.join(dp, self.index_filename)
@@ -44,7 +46,7 @@ class Store(BaseStore):
             fx = open(xfp, 'rb')
         except FileNotFoundError:
             fx = open(xfp, 'wb')
-            fx.write(b'00' * 4)
+            fx.write(b'\x00' * 4)
             fx.close()
             fx = open(xfp, 'rb')
 
@@ -88,6 +90,7 @@ class Store(BaseStore):
             fi.close()
             fi = open(fp, 'rb')
 
+        logg.debug('what is c {}'.format(c))
         while True:
             r = fi.read(c)
             if len(r) == 0:

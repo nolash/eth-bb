@@ -26,6 +26,7 @@ class Filter(SyncFilter):
         self.resolver_spec = None
         self.resolver = None
         self.store = None
+        self.index_store = None
         self.idx = None
         self.q = queue.Queue()
 
@@ -137,11 +138,15 @@ class Filter(SyncFilter):
 
         if store_type == 'fs':
             from eth_bb.store.date import Store
+            from eth_bb.store.ring import Store as RingStore
             dp = ctx_usr.get('bbpath', '.')
             dp = os.path.join(dp, '.content')
             reverse = store_mode=='prepend'
             self.store = Store(dp, reverse=reverse)
+            limit = ctx_usr.get('bbstoreindexlimit', str(100*1024))
+            self.index_store = RingStore(dp, int(limit), reverse=reverse, renderer=self.store.render)
             logg.debug('have store {}'.format(self.store))
+            logg.debug('have index store {}'.format(self.index_store))
 
 
     def filter(self, conn, block, tx, **kwargs):
@@ -163,9 +168,15 @@ class Filter(SyncFilter):
 
 
     def store_item(self, author, topic, hsh, time, content):
+        r = 0
         if self.store != None:
-            return self.store.put(author, topic, hsh, time, content)
-        logg.debug('nostore for {} {} {} {}'.format(author, topic, hsh, time))
+            #self.store.put(author, topic, hsh, time, content)
+            r |= 1
+        if self.index_store != None:
+            self.index_store.put(author, topic, hsh, time, content)
+            r |= 2
+        if r == 0:
+            logg.debug('nostore for {} {} {} {}'.format(author, topic, hsh, time))
 
 
     def add(self, time, author, topic, hsh, ctx=None):
