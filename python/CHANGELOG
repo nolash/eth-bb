@@ -1,0 +1,10 @@
+- 0.0.3
+	* Implement ring store
+- 0.0.2
+	* Add eth-monitor filter
+	* Implement chainsyncer context keys
+	* Implement date store
+- 0.0.1
+	* Add smart contract and interface
+	* CLI tool to get and put
+	* Verifier module for input and output
