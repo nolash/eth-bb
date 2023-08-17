@@ -170,7 +170,7 @@ class Filter(SyncFilter):
     def store_item(self, author, topic, hsh, time, content):
         r = 0
         if self.store != None:
-            #self.store.put(author, topic, hsh, time, content)
+            self.store.put(author, topic, hsh, time, content)
             r |= 1
         if self.index_store != None:
             self.index_store.put(author, topic, hsh, time, content)

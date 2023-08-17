@@ -90,7 +90,6 @@ class Store(BaseStore):
             fi.close()
             fi = open(fp, 'rb')
 
-        logg.debug('what is c {}'.format(c))
         while True:
             r = fi.read(c)
             if len(r) == 0:
@@ -109,12 +108,16 @@ class Store(BaseStore):
     def __store_append(self, fp, data):
         bdata = data.encode('utf-8')
         sz_add = len(bdata)
+        if sz_add > self.size_limit:
+            logg.warning('update too large for ring store: {} > limit {}'.format(sz_add, self.size_limit))
+
         sz_remaining = self.size_limit - sz_add
 
         xfp = '.' + self.index_filename + '.idx' 
         dp = os.path.dirname(fp)
         xfp = os.path.join(dp, xfp)
         fx = None
+        idxb = b''
         try:
             fx = open(xfp, 'rb')
         except FileNotFoundError:
@@ -122,23 +125,13 @@ class Store(BaseStore):
             fx.close()
             fx = open(xfp, 'rb')
 
-        idxb = b''
         while True:
             r = fx.read()
             if len(r) == 0:
                 break
             idxb += r
-
         fx.close()
 
-        (tyfd, tyfp) = tempfile.mkstemp()
-        fy = os.fdopen(tyfd, 'wb')
-        idxb = b'\x00' * 4
-        fy.write(idxb)
-        c = 0
-        i = 0
-
-        l = len(idxb)
         sz_existing = 0
         try:
             st = os.stat(fp)
@@ -146,45 +139,53 @@ class Store(BaseStore):
         except FileNotFoundError:
             pass
 
+        c = 0 # old data truncate size
+        threshold = 0 # idxb index to start writing existing content
+
+        l = len(idxb)
+        ridxb = b''
         for i in range(0, l, 4):
+            threshold = i * 4
             c = int.from_bytes(idxb[i:i+4], byteorder='big')
             if sz_existing - c <= sz_remaining:
                 break
 
-        for j in range(i * 4, l ,4):
-            v = int.from_bytes(idxb[j:j+4], byteorder='big')
-            v -= c
-            b = v.to_bytes(4, byteorder='big')
-            fy.write(b)
+        if c > 0:
+            logg.debug('truncating {} bytes to fit new update'.format(c))
+        sz_offset = sz_existing - c # new data offset
+        idxb += sz_offset.to_bytes(4, byteorder='big')
+        l += 4
 
-        v = sz_existing - c
-        b = v.to_bytes(4, byteorder='big')
-        fy.write(b)
-        fy.close()
-
-        (tfd, tfp) = tempfile.mkstemp()
-        fo = os.fdopen(tfd, 'wb')
-
-        # TODO: merge with prepend date method, acept length limit
         try:
             fi = open(fp, 'rb')
         except FileNotFoundError:
             fi = open(fp, 'wb')
             fi.close()
             fi = open(fp, 'rb')
-        
-        fi.seek(v)
+
+        (tfd, tfp) = tempfile.mkstemp()
+        fo = os.fdopen(tfd, 'wb')
+        (tyfd, tyfp) = tempfile.mkstemp()
+        fy = os.fdopen(tyfd, 'wb')
+
+        for i in range(threshold, l, 4):
+            v = int.from_bytes(idxb[i:i+4], byteorder='big')
+            v -= c 
+            b = v.to_bytes(4, byteorder='big')
+            fy.write(b)
+
+        fi.seek(c)
         while True:
             r = fi.read()
             if len(r) == 0:
                 break
-            c -= len(r)
             fo.write(r)
+        
+        fo.write(bdata)
 
-        fo.write(bdata) # write new data
-        fo.close()
+        fy.close()
         fi.close()
+        fo.close()
 
-        # TODO: needs to be locked
         shutil.copy(tyfp, xfp)
         shutil.copy(tfp, fp)
