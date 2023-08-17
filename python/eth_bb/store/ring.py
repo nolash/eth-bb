@@ -103,6 +103,7 @@ class Store(BaseStore):
         # TODO: needs to be locked
         shutil.copy(tyfp, xfp)
         shutil.copy(tfp, fp)
+        os.chmod(fp, 0o0644)
 
         
     def __store_append(self, fp, data):
@@ -189,3 +190,4 @@ class Store(BaseStore):
 
         shutil.copy(tyfp, xfp)
         shutil.copy(tfp, fp)
+        os.chmod(fp, 0o0644)

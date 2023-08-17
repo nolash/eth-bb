@@ -1,3 +1,5 @@
+- 0.0.4
+	* Change mode of content files created by date and ring store to 0o0644 
 - 0.0.3
 	* Implement ring store
 - 0.0.2

@@ -44,6 +44,7 @@ class Store(BaseStore):
         f.close()
         shutil.copy(tfp, fp)
         os.unlink(tfp)
+        os.chmod(fp, 0o0644)
         logg.debug('prepended content to {}'.format(fp))
 
 
@@ -51,6 +52,7 @@ class Store(BaseStore):
         f = open(fp, 'a')
         f.write(data)
         f.close()
+        os.chmod(fp, 0o0644)
         logg.debug('appended content to {}'.format(fp))
 
 
@@ -66,5 +68,3 @@ class Store(BaseStore):
         if self.reverse:
             return self.__store_prepend(fp, r)
         return self.__store_append(fp, r)
-
-
